@@ -130,7 +130,44 @@ try {
         echo "<div style='color:blue;'>Default Solver (solver2001) seeded.</div>";
     }
 
-    echo "<br><h3>✅ Database Setup Complete!</h3>";
+    // --- PATCH EXISTING DATABASES (For imported old DBs on new PCs) ---
+    $queries = [
+        "ALTER TABLE users ADD COLUMN email VARCHAR(255) DEFAULT NULL",
+        "ALTER TABLE users ADD COLUMN dept VARCHAR(100) DEFAULT NULL",
+        "ALTER TABLE users ADD COLUMN yearOfStudy VARCHAR(10) DEFAULT NULL",
+        "ALTER TABLE users ADD COLUMN blockNumber VARCHAR(20) DEFAULT NULL",
+        "ALTER TABLE users ADD COLUMN dormNumber VARCHAR(20) DEFAULT NULL",
+        "ALTER TABLE users ADD COLUMN phone VARCHAR(30) DEFAULT NULL",
+        "ALTER TABLE users ADD COLUMN idPhotoFront VARCHAR(255) DEFAULT NULL",
+        "ALTER TABLE users ADD COLUMN idPhotoBack VARCHAR(255) DEFAULT NULL",
+        "ALTER TABLE users ADD COLUMN warnings INT DEFAULT 0",
+        "ALTER TABLE users ADD COLUMN isBanned BOOLEAN DEFAULT FALSE",
+        "ALTER TABLE users ADD COLUMN isOnLeave BOOLEAN DEFAULT FALSE",
+        "ALTER TABLE users ADD COLUMN warningHistory TEXT DEFAULT NULL",
+        "ALTER TABLE users ADD COLUMN lastWarningReason TEXT DEFAULT NULL",
+        "ALTER TABLE reports ADD COLUMN photoUrl VARCHAR(255) DEFAULT NULL",
+        "ALTER TABLE reports ADD COLUMN specificDetails TEXT DEFAULT NULL",
+        "ALTER TABLE reports ADD COLUMN declineReason TEXT DEFAULT NULL",
+        "ALTER TABLE reports ADD COLUMN assignedPendingAdmin VARCHAR(100) DEFAULT NULL",
+        "ALTER TABLE reports ADD COLUMN delegatedFrom VARCHAR(100) DEFAULT NULL",
+        "ALTER TABLE reports ADD COLUMN delegationNote TEXT DEFAULT NULL",
+        "ALTER TABLE reports ADD COLUMN delegationStatus VARCHAR(50) DEFAULT NULL",
+        "ALTER TABLE reports ADD COLUMN slaDeadline DATETIME DEFAULT NULL",
+        "ALTER TABLE reports ADD COLUMN slaEscalated BOOLEAN DEFAULT FALSE",
+        "ALTER TABLE reports ADD COLUMN hiddenFromAdmin BOOLEAN DEFAULT FALSE",
+        "ALTER TABLE reports ADD COLUMN hiddenFromSolver BOOLEAN DEFAULT FALSE",
+        "ALTER TABLE reports ADD COLUMN hiddenFromReporter BOOLEAN DEFAULT FALSE"
+    ];
+
+    foreach ($queries as $query) {
+        try {
+            $db->exec($query);
+        } catch (PDOException $e) {
+            // 1060 is "Duplicate column name", which is fine. Ignore it.
+        }
+    }
+
+    echo "<br><h3>✅ Database Setup & Patching Complete!</h3>";
     echo "<p>You can now start migrating the frontend Javascript to use PHP endpoints.</p>";
 
 } catch (PDOException $e) {

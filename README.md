@@ -237,10 +237,11 @@ UniFix/
 
 2. Start **Apache** and **MySQL** from the XAMPP Control Panel.
 
-3. Run the one-time database setup by visiting:
+3. Run the automated database setup and patcher by visiting:
    ```
    http://localhost/UniFix/setup_database.php
    ```
+   > **Note:** If you are migrating an older `unifix_db.sql` file to a new PC, running this script will automatically **patch your database**, adding any newly introduced columns (like `email`, `dept`, `warnings`, etc.) safely without deleting your existing data.
 
 4. Open the app:
    ```
