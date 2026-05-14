@@ -25,7 +25,7 @@ UniFix is a full-stack, web-based issue management platform built for Ethiopian 
 ### 👨‍🎓 Student Dashboard
 | Report Submission | Issue Tracking |
 | :---: | :---: |
-| <img src="https://github.com/yonasleykun27/UniFix-System/blob/main/Img/Student%20Page%201.png?raw=true" width="300"> | <img src="https://github.com/yonasleykun27/UniFix-System/blob/main/Img/Student%20Page%202.png?raw=true" width="300"> |
+| <img src="https://github.com/yonasleykun27/UniFix/blob/main/Img/3.png?raw=true" width="300"> |
 
 ### 🛡️ Admin Portal
 | System Management | User Database |
