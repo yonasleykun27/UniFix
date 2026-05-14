@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniFix - Teacher Registration</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="apple-touch-icon" sizes="180x180" href="./Img/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./Img/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./Img/favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="./Img/favicon_io/site.webmanifest">
+    <script src="https://unpkg.com/quagga/dist/quagga.min.js"></script>
+    <style>
+        #interactive.viewport { display: none; margin-top: 15px; width: 100%; border-radius: 8px; overflow: hidden; }
+        #interactive.viewport canvas, #interactive.viewport video { width: 100%; height: auto; }
+
+        .camera-overlay { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: #000; z-index: 9999; flex-direction: column; align-items: center; justify-content: center; 
+        }
+        #cameraVideo { width: 100%; max-height: 70vh; object-fit: cover; }
+        #cameraCanvas { display: none; width: 100%; max-height: 70vh; }
+        .camera-controls { 
+            position: absolute; bottom: 30px; width: 100%; display: flex; 
+            justify-content: center; gap: 20px; z-index: 10000; 
+        }
+        .cam-btn { 
+            width: 70px; height: 70px; border-radius: 50%; border: 4px solid white; 
+            background: transparent; display: flex; align-items: center; justify-content: center;
+        }
+        .cam-btn i { font-size: 2rem; color: white; }
+        .cam-title {
+            position: absolute; top: 20px; color: white; background: rgba(0,0,0,0.5);
+            padding: 10px 20px; border-radius: 20px; font-weight: bold;
+        }
+
+        input:read-only.verified-id {
+            background-color: rgba(25, 135, 84, 0.1) !important;
+            border-color: #198754 !important;
+            color: #198754 !important;
+            font-weight: 700;
+        }
+
+        .utility-bar {
+            position: fixed; top: 10px; right: 10px; z-index: 1000;
+            display: flex; gap: 5px;
+        }
+
+        @media (max-width: 576px) {
+            .utility-bar { 
+                position: static; 
+                justify-content: center; 
+                margin-bottom: 20px; 
+                padding: 10px;
+                background: var(--bs-tertiary-bg);
+                border-radius: 10px;
+            }
+            .card-custom { padding: 20px !important; border-radius: 15px; }
+            h2 { font-size: 1.5rem; }
+            .btn-lg { padding: 12px; font-size: 1rem; }
+        }
+
+        .invalid-feedback { font-size: 0.75rem; margin-top: 0.25rem; }
+    </style>
+</head>
+<body class="bg-university d-flex flex-column min-vh-100">
+
+    <div class="utility-bar">
+        <div id="liveClock" class="badge bg-primary d-flex align-items-center shadow-sm">00:00</div>
+        <button class="btn btn-light btn-sm shadow-sm" onclick="if(window.System) System.toggleTheme()"><i id="themeIcon" class="bi bi-moon-stars-fill"></i></button>
+        <button class="btn btn-light btn-sm shadow-sm" onclick="if(window.System) System.toggleLanguage()"><i class="bi bi-translate"></i> <span id="langBtnText">Amharic</span></button>
+    </div>
+
+    <div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3"></div>
+
+    <div id="cameraOverlay" class="camera-overlay">
+        <div id="camTitle" class="cam-title">Capture Front ID</div>
+        <video id="cameraVideo" autoplay playsinline></video>
+        <canvas id="cameraCanvas"></canvas>
+
+        <div class="camera-controls">
+            <button id="btnCapture" class="cam-btn bg-danger" onclick="capturePhoto()"><i class="bi bi-camera"></i></button>
+            <div id="reviewControls" style="display: none; gap: 15px;">
+                <button class="btn btn-light btn-lg rounded-circle" onclick="retakePhoto()"><i class="bi bi-arrow-counterclockwise"></i></button>
+                <button class="btn btn-success btn-lg rounded-circle" onclick="confirmPhoto()"><i class="bi bi-check-lg"></i></button>
+            </div>
+        </div>
+        <button class="btn btn-link text-white position-absolute top-0 end-0 mt-3 me-3" onclick="closeCamera()"><i class="bi bi-x-lg fs-2"></i></button>
+    </div>
+
+    <div class="container py-4 py-md-5 fade-in">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card card-custom p-4 p-md-5 shadow-lg border-0">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-briefcase-fill text-primary" style="font-size: 3rem;"></i>
+                        <h2 class="fw-bold text-primary mt-2" data-i18n="regTitleTeach">Teacher Registration</h2>
+                        <p class="text-muted small" data-i18n="regSubtitleTeach">Faculty & Staff Account Creation</p>
+                    </div>
+
+                    <form id="regForm" class="needs-validation" novalidate>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6"><label class="form-label fw-bold" data-i18n="fullName">Full Name</label><div class="input-group has-validation"><span class="input-group-text"><i class="bi bi-person"></i></span><input type="text" id="fullName" class="form-control" data-i18n="phFullName" placeholder="Full Name" required></div></div>
+                            <div class="col-md-6"><label class="form-label fw-bold" data-i18n="staffId">Staff ID</label><div class="input-group has-validation"><span class="input-group-text"><i class="bi bi-card-heading"></i></span><input type="text" id="teacherId" class="form-control" data-i18n="phStaffId" placeholder="DBU..." required></div></div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6"><label class="form-label fw-bold">Email Address</label><div class="input-group has-validation"><span class="input-group-text"><i class="bi bi-envelope"></i></span><input type="email" id="email" class="form-control" placeholder="example@gmail.com" required></div></div>
+                            <div class="col-md-6"><label class="form-label fw-bold" data-i18n="phone">Phone Number</label><div class="input-group has-validation"><span class="input-group-text"><i class="bi bi-telephone"></i></span><input type="tel" id="phone" class="form-control" placeholder="09..." required></div></div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6"><label class="form-label fw-bold" data-i18n="username">Username</label><div class="input-group has-validation"><span class="input-group-text"><i class="bi bi-at"></i></span><input type="text" id="username" class="form-control" data-i18n="phUsernameTech" placeholder="tech1234" required></div></div>
+                            <div class="col-md-6"><label class="form-label fw-bold" data-i18n="password">Password</label><div class="input-group has-validation"><span class="input-group-text"><i class="bi bi-key"></i></span><input type="password" id="password" class="form-control" data-i18n="phPassword" placeholder="Password" required minlength="6"><button class="btn btn-outline-secondary" type="button" onclick="toggleRegPwd()"><i class="bi bi-eye" id="eyeIcon"></i></button></div></div>
+                        </div>
+
+                        <div class="card bg-light border-0 mb-4 shadow-sm rounded-4">
+                            <div class="card-body p-4">
+                                <h5 class="card-title text-primary fw-bold" data-i18n="idVerifyTitle">ID Card Verification</h5>
+                                <p class="card-text small text-muted mb-3" data-i18n="idVerifyDesc">Option 1: Upload. Option 2: Mobile Camera.</p>
+
+                                <div class="row g-3" id="fileUploadRow">
+                                    <div class="col-md-6"><label class="form-label small fw-bold" data-i18n="uploadFront">Front ID Image</label><input type="file" id="idFront" class="form-control" accept="image/*" required></div>
+                                    <div class="col-md-6"><label class="form-label small fw-bold" data-i18n="uploadBack">Back ID (Barcode Side)</label><input type="file" id="idBack" class="form-control" accept="image/*" required></div>
+                                </div>
+
+                                <div class="d-grid gap-2 mt-4">
+                                    <button type="button" id="verifyBtn" class="btn btn-warning text-dark fw-bold shadow-sm" onclick="verifyID()">
+                                        <i class="bi bi-qr-code-scan me-2"></i><span data-i18n="scanBtn">Verify Uploaded Image</span>
+                                    </button>
+                                    <button type="button" id="cameraBtn" class="btn btn-outline-primary fw-bold shadow-sm d-md-none" onclick="initMobileCamera()">
+                                        <i class="bi bi-camera-video me-2"></i><span data-i18n="mobileCamBtn">Open Camera & Scan</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" id="submitBtn" class="btn btn-primary btn-lg shadow-sm fw-bold" disabled data-i18n="verifyFirst">Verify ID First</button>
+                        </div>
+                    </form>
+
+                    <div class="text-center mt-4 border-top pt-3">
+                        <a href="index.html" class="btn btn-link text-decoration-none text-muted small" data-i18n="backToLogin"><i class="bi bi-arrow-left me-1"></i>Back to Login</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="js/main.js"></script>
+    <script>
+        let isVerified = false;
+        let stream = null;
+        let currentStep = 'front';
+        let frontBlob = null;
+        let backBlob = null;
+
+        window.addEventListener('load', () => {
+            const checkSystem = setInterval(() => { if (window.System) { clearInterval(checkSystem); System.applyLanguage(); System.applyTheme(); } }, 100);
+        });
+
+        function toggleRegPwd() {
+            const input = document.getElementById('password');
+            const icon = document.getElementById('eyeIcon');
+            if(input.type === 'password') { input.type = 'text'; icon.classList.replace('bi-eye', 'bi-eye-slash'); } 
+            else { input.type = 'password'; icon.classList.replace('bi-eye-slash', 'bi-eye'); }
+        }
+
+        function verifyID() {
+            const enteredID = document.getElementById('teacherId').value.trim();
+            const fileInput = document.getElementById('idBack'); 
+            if (!enteredID) { System.showToast(System.getTrans('enterIdFirst'), "warning"); return; }
+            if (fileInput.files.length === 0) { System.showToast(System.getTrans('uploadBackIdReq'), "warning"); return; }
+            processScan(URL.createObjectURL(fileInput.files[0]), enteredID);
+        }
+
+        function processScan(fileUrl, enteredID) {
+            System.showToast(System.getTrans('initScan'), "info");
+            Quagga.decodeSingle({
+                decoder: { readers: ["code_128_reader", "ean_reader", "code_39_reader"] },
+                locate: true, src: fileUrl
+            }, function(result) {
+                if(fileUrl.startsWith('blob:')) URL.revokeObjectURL(fileUrl);
+                if(result && result.codeResult && result.codeResult.code) {
+                    const scannedCode = result.codeResult.code.trim();
+                    if(scannedCode.includes(enteredID) || enteredID.includes(scannedCode)) { unlockReg(); } 
+                    else { System.showToast(System.getTrans('idMismatch'), "danger"); }
+                } else { System.showToast(System.getTrans('noBarcode'), "danger"); }
+            });
+        }
+
+        async function initMobileCamera() {
+            const enteredID = document.getElementById('teacherId').value.trim();
+            if (!enteredID) { System.showToast(System.getTrans('enterIdFirst'), "warning"); return; }
+            document.getElementById('cameraOverlay').style.display = 'flex';
+            currentStep = 'front';
+            document.getElementById('camTitle').innerText = System.getTrans('camTitleFront');
+            startStream();
+        }
+
+        async function startStream() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                const video = document.getElementById('cameraVideo');
+                video.srcObject = stream;
+                document.getElementById('cameraCanvas').style.display = 'none';
+                video.style.display = 'block';
+                document.getElementById('btnCapture').style.display = 'flex';
+                document.getElementById('reviewControls').style.display = 'none';
+            } catch (err) { System.showToast(System.getTrans('camError'), "danger"); closeCamera(); }
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById('cameraVideo');
+            const canvas = document.getElementById('cameraCanvas');
+            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            video.style.display = 'none'; canvas.style.display = 'block';
+            document.getElementById('btnCapture').style.display = 'none';
+            document.getElementById('reviewControls').style.display = 'flex';
+        }
+
+        function retakePhoto() {
+            document.getElementById('cameraVideo').style.display = 'block';
+            document.getElementById('cameraCanvas').style.display = 'none';
+            document.getElementById('btnCapture').style.display = 'flex';
+            document.getElementById('reviewControls').style.display = 'none';
+        }
+
+        function confirmPhoto() {
+            const canvas = document.getElementById('cameraCanvas');
+            canvas.toBlob(blob => {
+                if (currentStep === 'front') {
+                    frontBlob = blob; currentStep = 'back';
+                    document.getElementById('camTitle').innerText = System.getTrans('camTitleBack');
+                    retakePhoto();
+                } else {
+                    backBlob = blob; closeCamera();
+                    processScan(URL.createObjectURL(backBlob), document.getElementById('teacherId').value.trim());
+                }
+            }, 'image/jpeg', 0.9);
+        }
+
+        function closeCamera() {
+            if (stream) stream.getTracks().forEach(track => track.stop());
+            document.getElementById('cameraOverlay').style.display = 'none';
+        }
+
+        function unlockReg() {
+            isVerified = true;
+            System.showToast(System.getTrans('idMatch'), "success");
+            document.getElementById('teacherId').readOnly = true; 
+            document.getElementById('teacherId').classList.add("verified-id");
+            document.getElementById('idFront').required = false;
+            document.getElementById('idBack').required = false;
+            const btn = document.getElementById('submitBtn'); 
+            btn.disabled = false; btn.innerText = System.getTrans('registerAccount'); 
+            document.getElementById('verifyBtn').style.display = 'none';
+            document.getElementById('cameraBtn').style.display = 'none';
+        }
+
+        document.getElementById('regForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            if (!document.getElementById('fullName').value) { System.showToast(System.getTrans('nameReq'), "warning"); return; }
+            if (!document.getElementById('teacherId').value) { System.showToast(System.getTrans('idReq'), "warning"); return; }
+            if (!document.getElementById('username').value) { System.showToast(System.getTrans('userReq'), "warning"); return; }
+            if (!document.getElementById('password').value) { System.showToast(System.getTrans('passReq'), "warning"); return; }
+            if (document.getElementById('password').value.length < 6) { System.showToast(System.getTrans('passMinLen'), "warning"); return; }
+
+            if (!this.checkValidity()) {
+                e.stopPropagation(); this.classList.add('was-validated');
+                System.showToast(System.getTrans('fillMandatory'), "warning"); return;
+            }
+            if(!isVerified) { System.showToast(System.getTrans('verifyFirst'), "danger"); return; }
+
+            const username = document.getElementById('username').value.trim();
+            if (!/^tech\d{4}$/.test(username)) { System.showToast(System.getTrans('usernameTechReq'), "warning"); return; }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true; submitBtn.innerText = 'Registering...';
+
+            const fd = new FormData();
+            fd.append('role', 'Teacher');
+            fd.append('fullName', document.getElementById('fullName').value.trim());
+            fd.append('email', document.getElementById('email').value.trim());
+            fd.append('phone', document.getElementById('phone').value.trim());
+            fd.append('id', document.getElementById('teacherId').value.trim());
+            fd.append('username', username);
+            fd.append('password', document.getElementById('password').value);
+            fd.append('warnings', '0');
+            fd.append('isBanned', 'false');
+
+            const frontFile = document.getElementById('idFront').files[0] || (frontBlob ? new File([frontBlob], 'front.jpg', {type:'image/jpeg'}) : null);
+            const backFile  = document.getElementById('idBack').files[0]  || (backBlob  ? new File([backBlob],  'back.jpg',  {type:'image/jpeg'}) : null);
+            if (frontFile) fd.append('idPhotoFront', frontFile);
+            if (backFile)  fd.append('idPhotoBack',  backFile);
+
+            try {
+                await System.refreshData();
+                const users = System.getData().users;
+                if (users.find(u => u.username === username)) { System.showToast(System.getTrans('userDuplicate'), "danger"); submitBtn.disabled = false; submitBtn.innerText = System.getTrans('registerAccount'); return; }
+                if (users.find(u => u.id === fd.get('id'))) { System.showToast(System.getTrans('idDuplicate'), "danger"); submitBtn.disabled = false; submitBtn.innerText = System.getTrans('registerAccount'); return; }
+
+                const res = await fetch('register.php', { method: 'POST', body: fd });
+                const result = await res.json();
+                if (result.success) {
+                    System.showToast(System.getTrans('successRedirect'), "success");
+                    setTimeout(() => window.location.href = 'index.html', 2000);
+                } else {
+                    System.showToast(result.message, "danger");
+                    submitBtn.disabled = false; submitBtn.innerText = System.getTrans('registerAccount');
+                }
+            } catch(e) {
+                System.showToast(e.message, "danger");
+                submitBtn.disabled = false; submitBtn.innerText = System.getTrans('registerAccount');
+            }
+        });
+    </script>
+
+    <footer class="site-footer-bar border-top mt-auto py-3">
+      <div class="container text-center">
+        <span class="text-muted small">
+          &copy; 2026 <strong>UniFix</strong> &mdash;
+          <span data-i18n="footerDesc">Ethiopia's smart university campus issue management platform.</span>
+        </span>
+      </div>
+    </footer>
+    <style>.site-footer-bar{background:var(--bs-body-bg,#fff)}</style>
+</body>
+</html>

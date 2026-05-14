@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniFix - Staff Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="apple-touch-icon" sizes="180x180" href="./Img/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./Img/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./Img/favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="./Img/favicon_io/site.webmanifest">
+    <style>
+
+        .detail-box {
+            background-color: var(--bs-secondary-bg);
+            border-left: 4px solid var(--bs-success);
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            margin-top: 10px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .detail-item {
+            display: flex;
+            margin-bottom: 4px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            padding-bottom: 2px;
+        }
+        .detail-item:last-child { border-bottom: none; }
+        .detail-label {
+            font-weight: 700;
+            color: var(--bs-success);
+            min-width: 100px;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+        }
+        .detail-value { color: var(--bs-body-color); flex-grow: 1; }
+
+        #pageLoader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bs-body-bg); z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+            flex-direction: column; transition: opacity 0.5s;
+        }
+
+        [data-bs-theme="light"] .nav-pills .nav-link:not(.active) {
+            background-color: #f8f9fa !important; 
+            color: #212529 !important; 
+            border: 1px solid #dee2e6;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        [data-bs-theme="dark"] .nav-pills .nav-link:not(.active) {
+            background-color: #343a40 !important; 
+            color: #f8f9fa !important; 
+            border: 1px solid #495057;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .nav-pills .nav-link.active {
+            background-color: #198754 !important; 
+            color: #ffffff !important;
+            font-weight: 700;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        @media (max-width: 768px) {
+            .table thead { display: none; }
+            .table, .table tbody, .table tr, .table td { display: block; width: 100%; }
+            .table tr { 
+                margin-bottom: 20px; 
+                border: 1px solid #dee2e6; 
+                border-radius: 12px; 
+                padding: 15px; 
+                background: var(--bs-body-bg); 
+                box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            }
+            [data-bs-theme="dark"] .table tr { border-color: #444; }
+            .table td { 
+                display: flex; 
+                flex-direction: column; 
+                align-items: flex-start; 
+                text-align: left; 
+                border: none; 
+                padding: 10px 0; 
+                border-bottom: 1px dashed #eee; 
+                word-break: break-word;
+            }
+            [data-bs-theme="dark"] .table td { border-bottom-color: #333; }
+            .table td:last-child { border-bottom: none; }
+            .table td::before { 
+                content: attr(data-label); 
+                font-weight: 800; 
+                color: var(--bs-success); 
+                margin-bottom: 5px;
+                text-transform: uppercase;
+                font-size: 0.7rem;
+                letter-spacing: 1px;
+            }
+            .detail-box { width: 100%; }
+            .btn { width: 100%; padding: 12px; font-size: 1rem; }
+        }
+    </style>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8057787763038301"
+     crossorigin="anonymous"></script>
+</head>
+<body class="bg-university d-flex flex-column min-vh-100">
+
+    <div id="pageLoader">
+        <div class="spinner-border text-success mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+        <h5 class="fw-bold text-muted">Syncing Tasks...</h5>
+    </div>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success shadow-sm sticky-top">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-bold" href="#"><i class="bi bi-tools me-2"></i>UniFix Staff</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item me-3 d-none d-lg-block">
+                        <div id="liveClock" class="badge bg-white text-success shadow-sm" style="font-size: 0.9rem;">00:00</div>
+                    </li>
+                    <li class="nav-item me-3 text-end text-white">
+                        <span class="fw-bold user-display-name d-block">Solver</span>
+                        <small class="opacity-75" id="user-job-title">Job Title</small>
+                    </li>
+
+                    <li class="nav-item me-2 dropdown">
+                        <button class="btn btn-outline-light btn-sm position-relative" id="notifBell" data-bs-toggle="dropdown">
+                            <i class="bi bi-bell-fill"></i>
+                            <span id="notifBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.6rem;display:none;">0</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow" id="notifList" style="min-width:280px;max-height:320px;overflow-y:auto;">
+                            <li class="dropdown-item text-muted small">Loading...</li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item me-1">
+                        <button class="btn btn-outline-light btn-sm" onclick="openChangePasswordModal()" title="Change Password">
+                            <i class="bi bi-key-fill"></i>
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="btn btn-outline-light btn-sm me-2" onclick="System.toggleTheme()">
+                            <i id="themeIcon" class="bi bi-moon-stars-fill"></i>
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="btn btn-outline-light btn-sm me-2" onclick="System.toggleLanguage()">
+                            <i class="bi bi-translate"></i>
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="btn btn-danger btn-sm" onclick="System.logout()" data-i18n="logout">Logout</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-4 py-4 fade-in">
+
+        <div id="warningBanner" class="alert alert-warning d-flex align-items-start d-none shadow-sm rounded-3" role="alert">
+            <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-3 text-warning" style="font-size: 1.5rem;"></i>
+            <div>
+                <strong>Warning:</strong> You have <span id="warnCount" class="fw-bold">0</span> strike(s).
+                <div id="warnReason" class="mt-1 small border-top border-warning pt-1 d-none"></div>
+            </div>
+        </div>
+
+        <div id="leaveBanner" class="alert alert-danger d-flex align-items-center d-none shadow-sm rounded-3" role="alert">
+            <i class="bi bi-person-fill-slash flex-shrink-0 me-3" style="font-size: 1.5rem;"></i>
+            <div>
+                <strong>Status: On Leave</strong><br>
+                You are currently marked as "On Leave". You will not receive new automated task assignments.
+            </div>
+        </div>
+
+        <ul class="nav nav-pills mb-4 gap-2" id="pills-tab" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active fw-bold shadow-sm" id="pills-active-tab" data-bs-toggle="pill" data-bs-target="#pills-active" type="button">
+                    <i class="bi bi-list-task me-2"></i><span data-i18n="activeTasks">Active Tasks</span>
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link fw-bold shadow-sm" id="pills-history-tab" data-bs-toggle="pill" data-bs-target="#pills-history" type="button" onclick="loadTasks()">
+                    <i class="bi bi-clock-history me-2"></i><span data-i18n="jobHistory">Job History</span>
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="pills-tabContent">
+
+            <div class="tab-pane fade show active" id="pills-active" role="tabpanel">
+                <div class="card card-custom p-4">
+                    <h5 class="text-primary mb-3 fw-bold"><i class="bi bi-tools me-2"></i><span data-i18n="activeTasks">Active Tasks Assigned to Me</span></h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th data-i18n="date">Date</th>
+                                    <th data-i18n="reporterInfo">Reporter Info</th>
+                                    <th data-i18n="locationDetails">Location & Details</th>
+                                    <th data-i18n="status">Status</th>
+                                    <th data-i18n="actions">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="activeTableBody"></tbody>
+                        </table>
+                        <div id="noActiveMsg" class="text-center text-muted py-3 d-none">No personal tasks assigned currently.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="pills-history" role="tabpanel">
+                <div class="card card-custom p-4">
+                    <h5 class="text-success mb-3 fw-bold"><i class="bi bi-check-circle-fill me-2"></i><span data-i18n="jobHistory">Job History</span></h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th data-i18n="date">Date</th>
+                                    <th data-i18n="category">Category</th>
+                                    <th data-i18n="description">Description</th>
+                                    <th data-i18n="status">Status</th>
+                                    <th data-i18n="actions">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTableBody"></tbody>
+                        </table>
+                        <div id="noHistoryMsg" class="text-center text-muted py-3 d-none">No completed history found.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="reportModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" data-i18n="viewDetailsTitle">Full Report Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small" data-i18n="category">Category</label>
+                        <input type="text" id="editCategory" class="form-control fw-bold" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" data-i18n="description">Description & Details</label>
+                        <textarea id="editDesc" class="form-control" rows="10" readonly></textarea>
+                    </div>
+
+                    <div id="delegationInfo" class="mb-3 p-3 border border-info rounded bg-light-info d-none">
+                        <h6 class="fw-bold text-info"><i class="bi bi-info-circle-fill me-1"></i>Delegated Ticket</h6>
+                        <div class="small mb-2">
+                            <strong>From:</strong> <span id="delegatedFromName">—</span><br>
+                            <strong>Reason:</strong> <i id="delegatedReason">—</i>
+                        </div>
+                        <div class="d-flex gap-2" id="delegationButtons">
+                            <button id="acceptDelegationBtn" class="btn btn-success btn-sm flex-grow-1" onclick="acceptDelegation()">
+                                <i class="bi bi-check2-circle me-1"></i>Accept Ticket
+                            </button>
+                            <button id="declineDelegationBtn" class="btn btn-danger btn-sm flex-grow-1" onclick="declineDelegation()">
+                                <i class="bi bi-x-circle me-1"></i>Decline
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="delegateSection" class="mb-3 p-3 border rounded bg-light">
+                        <h6 class="fw-bold"><i class="bi bi-arrow-left-right text-warning me-1"></i>Delegate Ticket</h6>
+                        <div id="delegateActionArea">
+                            <label class="form-label fw-bold small">Delegate To:</label>
+                            <select id="delegateTo" class="form-select form-select-sm mb-2"></select>
+                            <textarea id="delegateNote" class="form-control form-control-sm mb-2" rows="2" placeholder="Reason for delegation..."></textarea>
+                            <button id="confirmDelegateBtn" class="btn btn-primary btn-sm w-100 fw-bold" onclick="delegateTicket()"><i class="bi bi-arrow-right-circle me-1"></i>Delegate Ticket</button>
+                        </div>
+                        <div id="cancelDelegationArea" class="d-none mt-2">
+                            <div class="alert alert-warning py-2 small mb-2">
+                                <i class="bi bi-hourglass-split me-1"></i>Waiting for <strong id="waitingForSolver">—</strong> to accept.
+                            </div>
+                            <button id="cancelDelegateBtn" class="btn btn-outline-danger btn-sm w-100 fw-bold" onclick="cancelDelegation()"><i class="bi bi-x-circle me-1"></i>Cancel Delegation</button>
+                        </div>
+                    </div>
+
+                    <div class="border rounded">
+                        <div class="bg-dark text-white p-2 rounded-top d-flex align-items-center">
+                            <i class="bi bi-chat-dots-fill me-2"></i><strong>Ticket Chat</strong>
+                            <span id="solverChatCount" class="badge bg-info ms-auto">0</span>
+                        </div>
+                        <div id="solverChatMessages" class="p-2" style="max-height:200px;overflow-y:auto;background:#f8f9fa;"></div>
+                        <div class="input-group p-2 border-top">
+                            <input type="text" id="solverChatInput" class="form-control form-control-sm" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendSolverChat()">
+                            <button id="sendChatBtn" class="btn btn-primary btn-sm" onclick="sendSolverChat()"><i class="bi bi-send"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="closeBtn">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="globalConfirmModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" data-i18n="confirmTitle">Confirm Action</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="globalConfirmBody">Are you sure?</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="cancelBtn">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="globalConfirmBtn" data-i18n="confirmBtn">Yes, Proceed</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="changePasswordModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="bi bi-key-fill me-2"></i>Change Password</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3"><label class="form-label fw-bold">Current Password</label><input type="password" id="cpCurrentPass" class="form-control" placeholder="Enter current password"></div>
+                    <div class="mb-3"><label class="form-label fw-bold">New Password</label><input type="password" id="cpNewPass" class="form-control" placeholder="Min 6 characters"></div>
+                    <div class="mb-3"><label class="form-label fw-bold">Confirm New Password</label><input type="password" id="cpConfirmPass" class="form-control" placeholder="Repeat new password"></div>
+                    <div id="cpError" class="alert alert-danger d-none small"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="submitChangePassword()"><i class="bi bi-check-lg me-1"></i>Update Password</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="js/main.js"></script>
+
+    <script>
+        let currentUser; let modal; let changePasswordModal;
+
+        const LOCAL_TEXTS = {
+            en: {
+                jobFinishedMsg: "Mark this job as finished?",
+                startJob: "Start Job", finishJob: "Finish Job",
+                errorMsg: "An error occurred", viewDetailsTitle: "View Details",
+                confirmDelete: "Remove from history?", deletedMsg: "Job removed.",
+                date: "Date", reporterInfo: "Reporter Info", locationDetails: "Location & Details", status: "Status", actions: "Actions",
+                category: "Category", description: "Description", warningReason: "Warning Reason:"
+            },
+            am: {
+                jobFinishedMsg: "ይህንን ስራ እንደተጠናቀቀ ምልክት ማድረግ ይፈልጋሉ?",
+                startJob: "ስራ ጀምር", finishJob: "ስራ ጨርስ",
+                errorMsg: "ስህተት ተፈጥሯል", viewDetailsTitle: "ዝርዝር ይመልከቱ",
+                confirmDelete: "ከታሪክ ይጥፋ?", deletedMsg: "ስራው ተወግዷል።",
+                date: "ቀን", reporterInfo: "ሪፖርት አቅራቢ", locationDetails: "ቦታ እና ዝርዝር", status: "ሁኔታ", actions: "ተግባራት",
+                category: "ምድብ", description: "ዝርዝር", warningReason: "የማስጠንቀቂያ ምክንያት:"
+            }
+        };
+
+        window.addEventListener('load', async () => {
+            const checkSystem = setInterval(() => {
+                if (window.System && window.System.currentUser) {
+                    clearInterval(checkSystem);
+                    initApp();
+                }
+            }, 100);
+        });
+
+        function initApp() {
+            currentUser = System.checkAuth('Solver');
+            modal = new bootstrap.Modal(document.getElementById('reportModal'));
+            changePasswordModal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
+
+            if(currentUser) {
+                document.getElementById('user-job-title').innerText = currentUser.jobTitle;
+
+                if(currentUser.isOnLeave) {
+                    const lBanner = document.getElementById('leaveBanner');
+                    if(lBanner) lBanner.classList.remove('d-none');
+                }
+            }
+            const loader = document.getElementById('pageLoader');
+            if(loader) { loader.style.opacity = '0'; setTimeout(() => loader.remove(), 500); }
+            window.loadTasks();
+            System.initNotificationBell('notifBell', 'notifBadge', 'notifList');
+        }
+
+        window.getTrans = (key) => {
+            const lang = localStorage.getItem('unifix_lang') || 'en';
+            if(LOCAL_TEXTS[lang] && LOCAL_TEXTS[lang][key]) return LOCAL_TEXTS[lang][key];
+            if(window.System && window.System.getTrans) return window.System.getTrans(key);
+            return key; 
+        }
+
+        window.loadTasks = () => {
+            const data = System.getData();
+            const activeBody = document.getElementById('activeTableBody');
+            const historyBody = document.getElementById('historyTableBody');
+            const noActiveMsg = document.getElementById('noActiveMsg');
+            const noHistoryMsg = document.getElementById('noHistoryMsg');
+
+            activeBody.innerHTML = ''; historyBody.innerHTML = '';
+
+            const allMyTasks = data.reports.filter(r => r.assignedSolverUsername === currentUser.username && !r.hiddenFromSolver);
+
+            let activeTasks = allMyTasks.filter(r => r.status !== 'Finished' && r.status !== 'Completed');
+            const historyTasks = allMyTasks.filter(r => r.status === 'Finished' || r.status === 'Completed');
+
+            // Sort active tasks: Closest deadline first. If no deadline, sort by older submission first.
+            activeTasks.sort((a, b) => {
+                if(a.slaDeadline && !b.slaDeadline) return -1;
+                if(!a.slaDeadline && b.slaDeadline) return 1;
+                if(a.slaDeadline && b.slaDeadline) {
+                    return new Date(a.slaDeadline) - new Date(b.slaDeadline);
+                }
+                return a.id - b.id; // Fallback to submitted order (id ascending)
+            });
+
+            if(activeTasks.length === 0) noActiveMsg.classList.remove('d-none');
+            else {
+                noActiveMsg.classList.add('d-none');
+                activeTasks.forEach(r => {
+                    let detailsHtml = `<div class="mb-2"><strong>${r.category}</strong></div><div class="text-muted small mb-2">${r.description}</div>`;
+
+                    if(r.slaDeadline) {
+                        detailsHtml += `<div class="badge bg-danger mb-2 text-white"><i class="bi bi-clock-history me-1"></i>Deadline: ${r.slaDeadline}</div>`;
+                    }
+
+                    if(r.specificDetails) {
+                        detailsHtml += `<div class="detail-box">`;
+                        for (const [key, value] of Object.entries(r.specificDetails)) {
+                            if(value && value.trim() !== "") {
+                                detailsHtml += `
+                                    <div class="detail-item">
+                                        <span class="detail-label">${key.replace(/([A-Z])/g, ' $1')}:</span>
+                                        <span class="detail-value">${value}</span>
+                                    </div>`;
+                            }
+                        }
+                        detailsHtml += `</div>`;
+                    }
+
+                    activeBody.innerHTML += `
+                        <tr>
+                            <td data-label="${window.getTrans('date')}"><small class="fw-bold text-muted">${r.date}</small></td>
+                            <td data-label="${window.getTrans('reporterInfo')}">
+                                <strong>${r.reporterName}</strong><br>
+                                <a href="tel:${r.reporterPhone}" class="btn btn-outline-success btn-sm py-0 px-2 mt-1" style="font-size:0.75rem">
+                                    <i class="bi bi-telephone-fill me-1"></i>${r.reporterPhone}
+                                </a>
+                            </td>
+                            <td data-label="${window.getTrans('locationDetails')}">${detailsHtml}</td>
+                            <td data-label="${window.getTrans('status')}"><span class="badge bg-${r.status === 'Assigned' ? 'warning text-dark' : 'info text-dark'} shadow-sm">${r.status}</span></td>
+                            <td data-label="${window.getTrans('actions')}">
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <button class="btn btn-outline-primary btn-sm" onclick="openModal(${r.id})" title="View Details"><i class="bi bi-eye"></i></button>
+                                    <button id="updateStatusBtn-${r.id}" class="btn btn-${r.status === 'Assigned' ? 'primary' : 'success'} btn-sm fw-bold shadow-sm" onclick="updateStatus(${r.id}, '${r.status === 'Assigned' ? 'In Progress' : 'Finished'}')">
+                                        <i class="bi bi-${r.status === 'Assigned' ? 'play-fill' : 'check-lg'}"></i> ${r.status === 'Assigned' ? window.getTrans('startJob') : window.getTrans('finishJob')}
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>`;
+                });
+            }
+
+            if(historyTasks.length === 0) noHistoryMsg.classList.remove('d-none');
+            else {
+                noHistoryMsg.classList.add('d-none');
+                historyTasks.reverse().forEach(r => {
+                    historyBody.innerHTML += `
+                        <tr>
+                            <td data-label="${window.getTrans('date')}">${r.date}</td>
+                            <td data-label="${window.getTrans('category')}">${r.category}</td>
+                            <td data-label="${window.getTrans('description')}"><span class="text-truncate d-inline-block" style="max-width:200px;">${r.description}</span></td>
+                            <td data-label="${window.getTrans('status')}"><span class="badge bg-success">Finished</span></td>
+                            <td data-label="${window.getTrans('actions')}">
+                                <div class="d-flex gap-1">
+                                    <button class="btn btn-primary btn-sm" onclick="openModal(${r.id})"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-danger btn-sm" onclick="deleteReport(${r.id})"><i class="bi bi-trash"></i></button>
+                                </div>
+                            </td>
+                        </tr>`;
+                });
+            }
+        };
+
+        window.updateStatus = (id, newStatus) => {
+            if(newStatus === 'Finished') System.confirmAction(window.getTrans('jobFinishedMsg'), () => performUpdate(id, newStatus));
+            else performUpdate(id, newStatus);
+        }
+
+        async function performUpdate(id, newStatus) {
+            const btn = document.getElementById(`updateStatusBtn-${id}`);
+            System.setLoading(btn, true, "");
+            if(await System.updateReportStatus(id, newStatus)) {
+                System.showToast("Status updated successfully.", "success");
+                await System.refreshData();
+                window.loadTasks();
+            } else {
+                System.setLoading(btn, false);
+                System.showToast(window.getTrans('errorMsg'), "danger");
+            }
+        }
+
+        window.deleteReport = (id) => {
+            System.confirmAction(window.getTrans('confirmDelete'), async () => {
+                if(await System.hideReportFromSolver(id)) {
+                    System.showToast(window.getTrans('deletedMsg'), "success");
+                    window.loadTasks();
+                }
+            });
+        }
+
+        let currentSolverReportId = null;
+
+        window.openModal = async (id) => {
+            const r = System.getData().reports.find(x => x.id === id);
+            if(!r) return;
+            currentSolverReportId = id;
+            document.getElementById('editCategory').value = r.category;
+            let fullText = `DESCRIPTION:\n${r.description}\n\nSPECIFIC DETAILS:\n`;
+            if(r.specificDetails) { 
+                for(const [k,v] of Object.entries(r.specificDetails)) if(v) fullText += `${k.toUpperCase()}: ${v}\n`;
+            }
+            if(r.slaDeadline) fullText += `\nSLA DEADLINE: ${r.slaDeadline}\n`;
+            document.getElementById('editDesc').value = fullText;
+
+            // Show attached photo
+            const modalBody = document.querySelector('#reportModal .modal-body');
+            const existingPhoto = document.getElementById('solverPhotoDisplay');
+            if(existingPhoto) existingPhoto.remove();
+            if(r.photoUrl) {
+                const photoDiv = document.createElement('div');
+                photoDiv.id = 'solverPhotoDisplay';
+                photoDiv.className = 'mt-3 p-2 border rounded bg-light';
+                photoDiv.innerHTML = `<label class="form-label fw-bold small text-muted mb-1"><i class="bi bi-camera me-1"></i>Attached Photo</label><br><img src="${r.photoUrl}" class="img-fluid rounded shadow-sm" style="max-height:350px;cursor:pointer;" alt="Report Photo" onclick="window.open('${r.photoUrl}','_blank')">`;
+                modalBody.insertBefore(photoDiv, document.getElementById('delegationInfo'));
+            }
+
+            // Delegation Info (Tickets delegated TO current user)
+            const dInfo = document.getElementById('delegationInfo');
+            if(r.delegatedFrom && r.assignedSolverUsername === currentUser.username) {
+                dInfo.classList.remove('d-none');
+                const fromUser = System.getData().users.find(u => u.username === r.delegatedFrom);
+                document.getElementById('delegatedFromName').innerText = fromUser ? fromUser.fullName : r.delegatedFrom;
+                document.getElementById('delegatedReason').innerText = r.delegationNote || 'No reason provided';
+                document.getElementById('delegationButtons').classList.toggle('d-none', r.delegationStatus === 'Accepted');
+            } else {
+                dInfo.classList.add('d-none');
+            }
+
+            // Delegation Section (Tickets that can be delegated FROM current user)
+            const dSection = document.getElementById('delegateSection');
+            const isFinished = ['Finished', 'Declined'].includes(r.status);
+
+            if(isFinished) {
+                dSection.classList.add('d-none');
+            } else {
+                dSection.classList.remove('d-none');
+                const cancelArea = document.getElementById('cancelDelegationArea');
+                const actionArea = document.getElementById('delegateActionArea');
+
+                if(r.delegationStatus === 'Pending' && r.delegatedFrom === currentUser.username) {
+                    cancelArea.classList.remove('d-none');
+                    actionArea.classList.add('d-none');
+                    document.getElementById('waitingForSolver').innerText = r.assignedSolverName || r.assignedSolverUsername;
+                } else {
+                    cancelArea.classList.add('d-none');
+                    actionArea.classList.remove('d-none');
+
+                    // Filter solvers: Staff General Technician can see all, others only same jobTitle
+                    let solvers = System.getData().users.filter(u => u.role === 'Solver' && u.username !== currentUser.username && !u.isOnLeave && !u.isBanned);
+                    const isGenTech = currentUser.jobTitle === 'Staff General Technician';
+                    if(!isGenTech) {
+                        solvers = solvers.filter(u => u.jobTitle === currentUser.jobTitle);
+                    }
+
+                    const sel = document.getElementById('delegateTo');
+                    sel.innerHTML = solvers.length ? solvers.map(s => `<option value="${s.username}" data-name="${s.fullName}">${s.fullName} (${s.jobTitle || 'Solver'})</option>`).join('') : `<option disabled>${isGenTech ? 'No other solvers' : 'No solvers with the same role'}</option>`;
+                }
+            }
+
+            // Load chat messages
+            const msgs = await System.fetchMessages(id);
+            document.getElementById('solverChatCount').innerText = msgs.length;
+            window._chatRefreshFn = () => openModal(currentSolverReportId);
+            System.renderChatMessages(msgs, 'solverChatMessages');
+
+            modal.show();
+        }
+
+        window.acceptDelegation = async () => {
+            if(!currentSolverReportId) return;
+            const btn = document.getElementById('acceptDelegationBtn');
+            System.setLoading(btn, true, "");
+            const res = await System.acceptDelegation(currentSolverReportId);
+            System.setLoading(btn, false);
+            if(res.success) { 
+                System.showToast("Ticket accepted!", "success"); 
+                window.loadTasks(); 
+                openModal(currentSolverReportId); 
+            } else {
+                System.showToast(res.message || "Failed to accept", "danger");
+            }
+        };
+
+        window.declineDelegation = async () => {
+            if(!currentSolverReportId) return;
+            System.confirmAction("Decline this delegation? It will be returned to the sender.", async () => {
+                const btn = document.getElementById('declineDelegationBtn');
+                System.setLoading(btn, true, "");
+                const res = await System.declineDelegation(currentSolverReportId);
+                System.setLoading(btn, false);
+                if(res.success) { 
+                    System.showToast("Delegation declined.", "info"); 
+                    modal.hide(); 
+                    window.loadTasks(); 
+                } else {
+                    System.showToast(res.message || "Failed to decline", "danger");
+                }
+            });
+        };
+
+        window.cancelDelegation = async () => {
+            if(!currentSolverReportId) return;
+            System.confirmAction("Cancel this delegation?", async () => {
+                const btn = document.getElementById('cancelDelegateBtn');
+                System.setLoading(btn, true, "");
+                const res = await System.cancelDelegation(currentSolverReportId);
+                System.setLoading(btn, false);
+                if(res.success) { 
+                    System.showToast("Delegation cancelled.", "info"); 
+                    window.loadTasks();
+                    openModal(currentSolverReportId); 
+                }
+            });
+        };
+
+        window.sendSolverChat = async () => {
+            const input = document.getElementById('solverChatInput');
+            const msg = input.value.trim();
+            if(!msg || !currentSolverReportId) return;
+            const btn = document.getElementById('sendChatBtn');
+            System.setLoading(btn, true, "");
+            const res = await System.sendMessage(currentSolverReportId, msg);
+            System.setLoading(btn, false);
+            if(res.success) {
+                input.value = '';
+                const updMsgs = await System.fetchMessages(currentSolverReportId);
+                document.getElementById('solverChatCount').innerText = updMsgs.length;
+                System.renderChatMessages(updMsgs, 'solverChatMessages');
+            }
+        };
+
+        window.delegateTicket = async () => {
+            const sel = document.getElementById('delegateTo');
+            const opt = sel.options[sel.selectedIndex];
+            if(!opt || opt.disabled) return System.showToast("No solver selected", "warning");
+            const note = document.getElementById('delegateNote').value.trim();
+            const btn = document.getElementById('confirmDelegateBtn');
+            System.confirmAction("Delegate this ticket?", async () => {
+                System.setLoading(btn, true, "Delegating...");
+                const res = await System.delegateTicket(currentSolverReportId, opt.value, opt.dataset.name, currentUser.username, note);
+                System.setLoading(btn, false);
+                if(res.success) { System.showToast("Ticket delegated!", "success"); modal.hide(); window.loadTasks(); }
+                else System.showToast(res.message || "Failed", "danger");
+            });
+        };
+
+        window.openChangePasswordModal = () => {
+            document.getElementById('cpCurrentPass').value = '';
+            document.getElementById('cpNewPass').value = '';
+            document.getElementById('cpConfirmPass').value = '';
+            document.getElementById('cpError').classList.add('d-none');
+            changePasswordModal.show();
+        };
+        window.submitChangePassword = async () => {
+            const cur = document.getElementById('cpCurrentPass').value;
+            const nw = document.getElementById('cpNewPass').value;
+            const cf = document.getElementById('cpConfirmPass').value;
+            const errEl = document.getElementById('cpError');
+            errEl.classList.add('d-none');
+            if (!cur || !nw || !cf) { errEl.textContent = 'All fields are required.'; errEl.classList.remove('d-none'); return; }
+            if (nw.length < 6) { errEl.textContent = 'Min 6 characters.'; errEl.classList.remove('d-none'); return; }
+            if (nw !== cf) { errEl.textContent = 'Passwords do not match.'; errEl.classList.remove('d-none'); return; }
+            const res = await System.changePassword(cur, nw);
+            if (res.success) { changePasswordModal.hide(); System.showToast('Password changed!', 'success'); }
+            else { errEl.textContent = res.message || 'Failed.'; errEl.classList.remove('d-none'); }
+        };
+    </script>
+
+    <footer class="site-footer-bar border-top mt-auto py-3">
+      <div class="container text-center">
+        <span class="text-muted small">
+          &copy; 2026 <strong>UniFix</strong> &mdash;
+          <span data-i18n="footerDesc">Ethiopia's smart university campus issue management platform.</span>
+        </span>
+      </div>
+    </footer>
+    <style>.site-footer-bar{background:var(--bs-body-bg,#fff)}</style>
+</body>
+</html>

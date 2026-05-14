@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniFix - University Issue Management</title>
+    <meta name="description" content="UniFix - Report, track and resolve university campus problems in Ethiopia.">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="apple-touch-icon" sizes="180x180" href="./Img/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./Img/favicon_io/favicon-32x32.png">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8057787763038301" crossorigin="anonymous"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bs-body-bg, #050505);
+            color: var(--bs-body-color, #ffffff);
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        [data-bs-theme="light"] body {
+            background-color: #f0f2f5;
+            color: #1a1a2a;
+        }
+
+        [data-bs-theme="light"] .site-nav {
+            background: #f8f9fa !important;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+        }
+
+        [data-bs-theme="light"] .nav-brand { color: #000 !important; }
+        [data-bs-theme="light"] .nav-link { color: #222 !important; font-weight: 600; }
+        [data-bs-theme="light"] .nav-link:hover { color: #00ff88 !important; }
+        [data-bs-theme="light"] .btn-join {
+            background: rgba(0, 0, 0, 0.05);
+            color: #000;
+            border-color: rgba(0, 0, 0, 0.2);
+        }
+        [data-bs-theme="light"] .btn-join:hover {
+            background: #000;
+            color: #fff;
+        }
+
+        [data-bs-theme="light"] .hero-section {
+            background: radial-gradient(circle at 70% 50%, #e9ecef 0%, #f0f2f5 100%);
+        }
+        [data-bs-theme="light"] .block-1,
+        [data-bs-theme="light"] .block-2 {
+            background: linear-gradient(145deg, #f0f0f5, #e0e0e5);
+            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 20px 20px 60px rgba(0,0,0,0.1);
+        }
+        [data-bs-theme="light"] .dust { background: rgba(0,0,0,0.2); box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        [data-bs-theme="light"] .hero-title span { color: #444; }
+        [data-bs-theme="light"] .hero-desc { color: #555; }
+
+        .hero-subtitle-text {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        [data-bs-theme="light"] .hero-subtitle-text {
+            color: #6c757d;
+        }
+
+        [data-bs-theme="light"] .btn-primary-custom {
+            background: rgba(0, 0, 0, 0.05);
+            color: #000;
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+        [data-bs-theme="light"] .btn-primary-custom:hover {
+            background: #000;
+            color: #fff;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        [data-bs-theme="light"] .features-section { background-color: #f8f9fa; }
+        [data-bs-theme="light"] .grid-bg {
+            background-image: 
+                linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+        }
+        [data-bs-theme="light"] .feature-card {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        [data-bs-theme="light"] .feature-card:hover {
+            background: rgba(255, 255, 255, 1);
+            border-color: rgba(0, 0, 0, 0.1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+        }
+        [data-bs-theme="light"] .feature-icon {
+            background: rgba(0,0,0,0.05);
+            color: #000;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        [data-bs-theme="light"] .feature-list li { color: #555; }
+        [data-bs-theme="light"] .feature-list li::before {
+            background: rgba(0,0,0,0.1);
+            color: #000;
+        }
+
+        [data-bs-theme="light"] .site-footer { background: #f8f9fa; border-top: 1px solid rgba(0,0,0,0.05); }
+        [data-bs-theme="light"] .footer-link { color: #666; }
+        [data-bs-theme="light"] .footer-link:hover { color: #000; }
+        [data-bs-theme="light"] .site-footer h6 { color: #000 !important; }
+
+        @keyframes dropDownBounce {
+            0% { opacity: 0; transform: translateY(-40px); }
+            50% { opacity: 1; transform: translateY(10px); }
+            75% { transform: translateY(-5px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .animate-drop-down {
+            animation: dropDownBounce 1s cubic-bezier(0.28, 0.84, 0.42, 1) forwards;
+            opacity: 0;
+            display: inline-block;
+        }
+
+        .text-rotator {
+            display: inline-flex;
+            height: 1.4em;
+            overflow: hidden;
+            vertical-align: bottom;
+        }
+        .text-rotator-inner {
+            display: flex;
+            flex-direction: column;
+            animation: slideWords 6s infinite cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        .text-rotator-inner .word {
+            display: block;
+            height: 1.4em;
+            line-height: 1.4em;
+            color: #00ff88;
+            white-space: nowrap;
+        }
+        [data-bs-theme="light"] .text-rotator-inner .word {
+            color: #008f4c;
+        }
+        @keyframes slideWords {
+            0%, 25% { transform: translateY(0); }
+            33%, 58% { transform: translateY(-1.4em); }
+            66%, 91% { transform: translateY(-2.8em); }
+            100% { transform: translateY(0); }
+        }
+
+        /* Navbar Styling */
+        .site-nav {
+            background: rgba(5, 5, 5, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1030;
+            transition: all 0.3s ease;
+        }
+        .nav-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff !important;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .nav-brand i {
+            color: #00ff88;
+        }
+        .nav-link {
+            color: #a0a0a0;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.3s;
+            text-decoration: none;
+        }
+        .nav-link:hover {
+            color: #fff;
+        }
+        .btn-join {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .btn-join:hover {
+            background: #fff;
+            color: #000;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding-top: 80px;
+            background: radial-gradient(circle at 70% 50%, rgba(20, 20, 25, 1) 0%, rgba(5, 5, 5, 1) 100%);
+        }
+
+        /* 3D Object Simulation */
+        .hero-graphics {
+            position: absolute;
+            right: 5%;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50%;
+            height: 80%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .sphere {
+            position: absolute;
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle at 30% 30%, #ffbe0b, #fb5607, #ff006e);
+            border-radius: 50%;
+            top: 40%;
+            left: 40%;
+            box-shadow: 
+                inset -20px -20px 40px rgba(0,0,0,0.5),
+                0 30px 50px rgba(0,0,0,0.8);
+            animation: floatAndRotateSphere 12s linear infinite;
+            z-index: 2;
+        }
+
+        .block-1 {
+            position: absolute;
+            width: 400px;
+            height: 60px;
+            background: linear-gradient(145deg, #1a1a24, #0d0d14);
+            top: 55%;
+            left: 10%;
+            transform: rotate(-25deg);
+            box-shadow: 20px 20px 60px rgba(0,0,0,0.8), -1px -1px 2px rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.02);
+            z-index: 1;
+        }
+
+        .block-2 {
+            position: absolute;
+            width: 150px;
+            height: 300px;
+            background: linear-gradient(145deg, #1a1a24, #0d0d14);
+            top: 15%;
+            left: 60%;
+            transform: rotate(15deg);
+            box-shadow: 20px 20px 60px rgba(0,0,0,0.8);
+            border: 1px solid rgba(255,255,255,0.02);
+            z-index: 0;
+        }
+
+        /* Particle Dust */
+        .dust {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(255,255,255,0.8);
+            animation: floatDust 10s linear infinite;
+        }
+
+        @keyframes floatAndRotateSphere {
+            0% { transform: translateY(0) scale(1) rotate(0deg); }
+            50% { transform: translateY(-20px) scale(1.02) rotate(180deg); }
+            100% { transform: translateY(0) scale(1) rotate(360deg); }
+        }
+        @keyframes floatDust {
+            0% { transform: translateY(0) translateX(0); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(-100vh) translateX(50px); opacity: 0; }
+        }
+
+        [data-bs-theme="light"] .footer-link:hover { color: #000; }
+        [data-bs-theme="light"] .site-footer h6 { color: #000 !important; }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            max-width: 650px;
+        }
+        .hero-title {
+            font-size: clamp(2rem, 5vw, 4.5rem);
+            font-weight: 600;
+            line-height: 1.3;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.02em;
+        }
+        .hero-title span {
+            color: #a0a0a0;
+            display: block;
+        }
+        .hero-desc {
+            font-size: 1.25rem;
+            color: #a0a0a0;
+            font-weight: 300;
+            margin-bottom: 2.5rem;
+            max-width: 80%;
+        }
+        .btn-primary-custom {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+        .btn-primary-custom:hover {
+            background: #fff;
+            color: #000;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255,255,255,0.1);
+        }
+
+        /* Features Section */
+        .features-section {
+            background-color: #000;
+            padding: 8rem 0;
+            position: relative;
+        }
+
+        .grid-bg {
+            position: absolute;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .features-title {
+            font-size: clamp(2.5rem, 4vw, 3.5rem);
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 4rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-card {
+            background: rgba(20, 20, 25, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 2.5rem;
+            height: 100%;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            backdrop-filter: blur(10px);
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            background: rgba(30, 30, 35, 0.8);
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #fff;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .feature-card h4 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .feature-list li {
+            position: relative;
+            padding-left: 28px;
+            margin-bottom: 1rem;
+            color: #a0a0a0;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .feature-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            top: 2px;
+            width: 18px;
+            height: 18px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6rem;
+            color: #fff;
+        }
+
+        /* Footer */
+        .site-footer {
+            background: #050505;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding: 4rem 0 2rem;
+            position: relative;
+            z-index: 1;
+        }
+        .footer-brand i {
+            color: #00ff88;
+        }
+        .footer-link {
+            color: #888;
+            text-decoration: none;
+            transition: color 0.3s;
+            font-size: 0.9rem;
+        }
+        .footer-link:hover {
+            color: #fff;
+        }
+
+        /* Utility Bar overrides for dark mode */
+        .utility-bar {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1050;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .utility-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+        }
+        .utility-btn:hover {
+            background: #fff;
+            color: #000;
+        }
+
+        /* Modal dark styling */
+        .modal-content {
+            background: #111;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+        }
+        .modal-header {
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .form-control {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #fff;
+        }
+        .form-control:focus {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.3);
+            color: #fff;
+            box-shadow: none;
+        }
+        .input-group-text {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #a0a0a0;
+        }
+
+        .nav-icon-btn {
+            background: transparent;
+            border: none;
+            color: inherit;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 0 5px;
+            transition: color 0.3s;
+        }
+        .nav-icon-btn:hover {
+            color: #00ff88;
+        }
+        [data-bs-theme="light"] .nav-icon-btn:hover {
+            color: #000;
+        }
+
+        /* Partner Logos Marquee */
+        .partners-section {
+            background-color: #000;
+            padding: 3rem 0;
+            overflow: hidden;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            position: relative;
+        }
+        [data-bs-theme="light"] .partners-section {
+            background-color: #fff;
+            border-color: rgba(0,0,0,0.05);
+        }
+        .partners-track {
+            display: flex;
+            align-items: center;
+            gap: 5rem;
+            width: max-content;
+            animation: scrollLogos 35s linear infinite;
+        }
+        .partner-logo {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: rgba(255,255,255,0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            filter: grayscale(100%);
+            transition: color 0.3s, filter 0.3s;
+        }
+        .partner-logo:hover {
+            color: rgba(255,255,255,0.8);
+            filter: grayscale(0%);
+        }
+        [data-bs-theme="light"] .partner-logo {
+            color: rgba(0,0,0,0.3);
+        }
+        [data-bs-theme="light"] .partner-logo:hover {
+            color: rgba(0,0,0,0.8);
+        }
+        @keyframes scrollLogos {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Floating Help Button */
+        .help-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00ff88 0%, #00b050 100%);
+            color: #000;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 10px 20px rgba(0, 255, 136, 0.3);
+            cursor: pointer;
+            z-index: 1050;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .help-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 25px rgba(0, 255, 136, 0.4);
+            color: #000;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .hero-section {
+                padding-top: 100px;
+                min-height: auto;
+                padding-bottom: 3rem;
+            }
+            .hero-title {
+                font-size: 2rem;
+            }
+            .hero-desc {
+                font-size: 1rem;
+                max-width: 100%;
+            }
+            .features-section {
+                padding: 4rem 0;
+            }
+            .features-title {
+                font-size: 2rem;
+                margin-bottom: 2rem;
+            }
+            .partners-section {
+                padding: 2rem 0;
+            }
+            .partners-track {
+                gap: 2.5rem;
+            }
+            .partner-logo {
+                font-size: 1rem;
+            }
+            .help-btn {
+                width: 50px;
+                height: 50px;
+                bottom: 1rem;
+                right: 1rem;
+                font-size: 1.25rem;
+            }
+        }
+    </style>
+</head>
+<body data-bs-theme="dark">
+
+    <div id="liveClock" class="d-none">00:00</div> 
+
+    <div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3" style="margin-top:80px; z-index: 1100;"></div>
+
+    <nav class="site-nav">
+        <div class="container d-flex align-items-center justify-content-between py-3">
+            <a href="#home" class="nav-brand">
+                <i class="bi bi-check2-square"></i> UniFix
+            </a>
+
+            <div class="d-flex align-items-center gap-3">
+                <a href="#about" class="nav-link d-none d-md-block" data-i18n="navAbout">About Us</a>
+                <a href="#contact" class="nav-link d-none d-sm-block" data-i18n="navContact">Contact us</a>
+                <button class="nav-icon-btn" onclick="if(window.System)System.toggleTheme()" title="Toggle Theme">
+                    <i id="themeIcon" class="bi bi-moon-stars-fill"></i>
+                </button>
+                <button class="nav-icon-btn" onclick="if(window.System)System.toggleLanguage()" title="Toggle Language">
+                    <i class="bi bi-translate"></i>
+                </button>
+                <button class="btn-join" data-bs-toggle="modal" data-bs-target="#loginModal" data-i18n="navSignIn">Sign In</button>
+            </div>
+        </div>
+    </nav>
+
+    <section id="home" class="hero-section">
+
+        <div class="hero-graphics d-none d-lg-block" id="graphicsContainer">
+            <div class="block-1"></div>
+            <div class="block-2"></div>
+            <div class="sphere d-flex align-items-center justify-content-center text-center">
+                <div class="sphere-text fw-bold text-white lh-1" style="text-shadow: 2px 2px 15px rgba(0,0,0,0.9); font-size: 2.2rem; transform: translateZ(50px);">
+                    <span data-i18n="sphereText1">Smart</span><br>
+                    <span data-i18n="sphereText2" style="font-size: 1.5rem; color: #ffbe0b;">Campus</span>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title animate-drop-down">
+                    <span data-i18n="heroTagline">One Report. Real Solutions. A Better Campus.</span><br>
+                    <span class="text-rotator">
+                        <span class="text-rotator-inner">
+                            <span class="word" data-i18n="heroRotator1">Live Tracking</span>
+                            <span class="word" data-i18n="heroRotator2">Issue Resolution</span>
+                            <span class="word" data-i18n="heroRotator3">Maintenance Operations</span>
+                        </span>
+                    </span>
+                </h1>
+                <h5 class="animate-drop-down hero-subtitle-text mb-3 fw-normal" style="animation-delay: 0.1s" data-i18n="heroMotto">Ethiopia's University Problem Reporting & Tracking Platform</h5>
+                <div class="animate-drop-down" style="animation-delay: 0.2s">
+                    <p class="hero-desc" data-i18n="heroDesc">
+                        Report, track and resolve university campus problems in one centralized, intelligent platform. Built for Ethiopian universities.
+                    </p>
+                </div>
+                <div class="d-flex gap-3 animate-drop-down" style="animation-delay: 0.4s">
+                    <button class="btn-primary-custom" data-bs-toggle="modal" data-bs-target="#loginModal">
+                        <span data-i18n="heroCtaSignIn">Sign In</span> <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="partners-section">
+        <div class="partners-track">
+
+            <div class="partner-logo"><i class="bi bi-bank"></i> Debre Berhan University</div>
+            <div class="partner-logo"><i class="bi bi-building"></i> Addis Ababa University</div>
+            <div class="partner-logo"><i class="bi bi-mortarboard"></i> Hawassa University</div>
+            <div class="partner-logo"><i class="bi bi-book"></i> Bahir Dar University</div>
+            <div class="partner-logo"><i class="bi bi-journal-bookmark"></i> Mekelle University</div>
+
+            <div class="partner-logo"><i class="bi bi-bank"></i> Debre Berhan University</div>
+            <div class="partner-logo"><i class="bi bi-building"></i> Addis Ababa University</div>
+            <div class="partner-logo"><i class="bi bi-mortarboard"></i> Hawassa University</div>
+            <div class="partner-logo"><i class="bi bi-book"></i> Bahir Dar University</div>
+            <div class="partner-logo"><i class="bi bi-journal-bookmark"></i> Mekelle University</div>
+        </div>
+    </section>
+
+    <section id="about" class="features-section">
+        <div class="grid-bg"></div>
+        <div class="container">
+            <h2 class="features-title" data-i18n="whyJoinTitle">Why Join UniFix<br>Platform</h2>
+
+            <div class="row g-4">
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-person-badge"></i>
+                        </div>
+                        <h4 data-i18n="aboutCard1Title">For Students</h4>
+                        <ul class="feature-list">
+                            <li data-i18n="featureStudent1">Report dorm, cafeteria, and facility issues instantly</li>
+                            <li data-i18n="featureStudent2">Simple submission process and easy-to-follow tracking</li>
+                            <li data-i18n="featureStudent3">Real-time notifications on issue status</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-person-workspace"></i>
+                        </div>
+                        <h4 data-i18n="aboutCard2Title">For Teachers</h4>
+                        <ul class="feature-list">
+                            <li data-i18n="featureTeacher1">Submit lab, academic, and administrative concerns</li>
+                            <li data-i18n="featureTeacher2">Direct communication channel with facility managers</li>
+                            <li data-i18n="featureTeacher3">Access your submission history anytime</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-sliders"></i>
+                        </div>
+                        <h4 data-i18n="aboutCard3Title">Extensive Dashboard</h4>
+                        <ul class="feature-list">
+                            <li data-i18n="featureSystem1">Check issue resolution progress in real-time</li>
+                            <li data-i18n="featureSystem2">Advanced system for assignment and monitoring</li>
+                            <li data-i18n="featureSystem3">24/7 multi-lingual support (English & Amharic)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="site-footer" id="contact">
+        <div class="container">
+            <div class="row g-4 mb-5">
+                <div class="col-md-4">
+                    <a href="#" class="nav-brand mb-3 d-inline-flex">
+                        <i class="bi bi-check2-square"></i> UniFix
+                    </a>
+                    <p class="text-muted small pr-4" data-i18n="footerDesc">
+                        Ethiopia's smart university campus issue management platform, designed to bring transparency and efficiency to campus maintenance.
+                    </p>
+                </div>
+                <div class="col-md-4 text-center">
+                    <h6 class="text-white mb-3" data-i18n="footerPlatform">Platform</h6>
+                    <a href="register_student.html" class="footer-link" data-i18n="footerStudents">Students</a><br>
+                    <a href="register_teacher.html" class="footer-link" data-i18n="footerTeachers">Teachers</a><br>
+                    <a href="#" class="footer-link" data-bs-toggle="modal" data-bs-target="#loginModal" data-i18n="footerSignIn">Sign In</a>
+                </div>
+                <div class="col-md-4">
+                    <h6 class="text-white mb-3">Contact</h6>
+                    <p class="footer-link mb-1"><i class="bi bi-envelope me-2"></i> support@unifix.edu.et</p>
+                    <p class="footer-link mb-1"><i class="bi bi-geo-alt me-2"></i> Debre Berhan University</p>
+                </div>
+            </div>
+            <div class="border-top border-secondary pt-4 mt-4 d-flex justify-content-center align-items-center flex-wrap text-center">
+                <p class="text-muted small mb-0">&copy; 2026 UniFix. <span data-i18n="footerRights">All rights reserved.</span></p>
+            </div>
+        </div>
+    </footer>
+
+    <div class="modal fade" id="loginModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:400px">
+            <div class="modal-content shadow-lg">
+                <div class="modal-header border-bottom-0 pb-0 pt-4 px-4 position-relative">
+                    <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
+                    <div>
+                        <h4 class="fw-bold mb-1" data-i18n="loginWelcome">Welcome Back</h4>
+                        <p class="text-muted small" data-i18n="loginWelcomeDesc">Sign in to your account</p>
+                    </div>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="loginForm">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small text-uppercase fw-semibold" data-i18n="lblUsername">Username</label>
+                            <div class="input-group">
+                                <span class="input-group-text border-end-0"><i class="bi bi-person"></i></span>
+                                <input type="text" id="username" class="form-control border-start-0 ps-0" placeholder="Enter username" required>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label text-muted small text-uppercase fw-semibold" data-i18n="lblPassword">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text border-end-0"><i class="bi bi-lock"></i></span>
+                                <input type="password" id="password" class="form-control border-start-0 ps-0" placeholder="Enter password" required>
+                                <button class="btn btn-outline-secondary border-start-0" type="button" onclick="togglePwd()"><i class="bi bi-eye" id="eyeIcon"></i></button>
+                            </div>
+                        </div>
+                        <button type="submit" id="loginBtn" class="btn btn-light w-100 py-2 fw-semibold mb-3" data-i18n="loginBtn">Sign In</button>
+
+                        <div class="text-center">
+                            <a href="#" class="text-muted small text-decoration-none" onclick="showForgot(true);return false">Forgot Password?</a>
+                        </div>
+                    </form>
+
+                    <div id="forgotPanel" class="d-none">
+                        <h6 class="fw-bold mb-2">Reset Password</h6>
+                        <p class="text-muted small mb-3">Enter username to receive a reset link.</p>
+                        <div class="mb-3">
+                            <input type="text" id="forgotUsername" class="form-control" placeholder="Your username">
+                        </div>
+                        <div id="forgotMsg" class="alert d-none small py-2 mb-3"></div>
+                        <button id="forgotBtn" class="btn btn-light w-100 py-2 fw-semibold mb-2" onclick="submitForgot()">Send Reset Link</button>
+                        <button class="btn btn-link text-muted w-100 text-decoration-none small" onclick="showForgot(false)">Back to Login</button>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-center border-top-0 pt-0 pb-4">
+                    <p class="text-muted small mb-0" data-i18n="noAccount">Don't have an account?</p>
+                    <div class="d-flex gap-2 w-100 mt-2">
+                        <a href="register_student.html" class="btn btn-outline-light btn-sm flex-grow-1" data-i18n="registerStudent">Student</a>
+                        <a href="register_teacher.html" class="btn btn-outline-light btn-sm flex-grow-1" data-i18n="registerTeacher">Teacher</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="helpModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:400px">
+            <div class="modal-content shadow-lg">
+                <div class="modal-header border-bottom-0 pb-0 pt-4 px-4 position-relative">
+                    <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
+                    <div>
+                        <h4 class="fw-bold mb-1" data-i18n="helpTitle">Need Help?</h4>
+                        <p class="text-muted small" data-i18n="helpDesc">We're here to assist you.</p>
+                    </div>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="helpForm" onsubmit="
+                        event.preventDefault(); 
+                        const btn = this.querySelector('button[type=\'submit\']');
+                        const originalText = btn.innerHTML;
+                        btn.disabled = true;
+                        btn.innerHTML = 'Sending...';
+                        fetch('send_help.php', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                name: this.querySelectorAll('.form-control')[0].value,
+                                email: this.querySelectorAll('.form-control')[1].value,
+                                message: this.querySelectorAll('.form-control')[2].value
+                            })
+                        }).then(r => r.json()).then(data => {
+                            if(window.System && window.System.showToast) {
+                                window.System.showToast('Message sent successfully! Our support team will respond shortly.', 'success');
+                            }
+                            document.getElementById('helpModal').querySelector('.btn-close').click();
+                            this.reset();
+                        }).catch(e => {
+                            if(window.System && window.System.showToast) {
+                                window.System.showToast('Failed to send message. Please try again.', 'danger');
+                            }
+                        }).finally(() => {
+                            btn.disabled = false;
+                            btn.innerHTML = originalText;
+                        });
+                    ">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small text-uppercase fw-semibold" data-i18n="helpName">Name</label>
+                            <input type="text" class="form-control" placeholder="Your Name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small text-uppercase fw-semibold" data-i18n="helpEmail">Email</label>
+                            <input type="email" class="form-control" placeholder="Your Email Address" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label text-muted small text-uppercase fw-semibold" data-i18n="helpMessage">Message</label>
+                            <textarea class="form-control" rows="4" placeholder="How can we help you?" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-light w-100 py-2 fw-semibold" data-i18n="helpSend">Send Message</button>
+                    </form>
+
+                    <hr class="my-4 border-secondary" style="opacity: 0.1;">
+                    <h6 class="fw-bold mb-3 text-center" data-i18n="helpFaq">Quick FAQ</h6>
+                    <div class="d-flex flex-column gap-3">
+                        <div>
+                            <p class="mb-1 fw-semibold small" style="color: var(--bs-body-color);">How do I reset my password?</p>
+                            <p class="mb-0 text-muted small" style="font-size: 0.85rem">Click "Forgot Password?" on the sign-in screen and enter your username.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="help-btn" data-bs-toggle="modal" data-bs-target="#helpModal" title="Need Help?">
+        <i class="bi bi-chat-dots-fill"></i>
+    </button>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="js/main.js?v=2"></script>
+    <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const nav = document.querySelector('.site-nav');
+            if (window.scrollY > 50) {
+                nav.style.padding = '5px 0';
+                nav.style.background = 'rgba(5, 5, 5, 0.95)';
+            } else {
+                nav.style.padding = '0';
+                nav.style.background = 'rgba(5, 5, 5, 0.8)';
+            }
+        });
+
+        // Login Logic
+        function togglePwd(){
+            const i=document.getElementById('password'),c=document.getElementById('eyeIcon');
+            if(i.type==='password'){i.type='text';c.classList.replace('bi-eye','bi-eye-slash')}
+            else{i.type='password';c.classList.replace('bi-eye-slash','bi-eye')}
+        }
+        function showForgot(s){
+            document.getElementById('loginForm').classList.toggle('d-none',s);
+            document.getElementById('forgotPanel').classList.toggle('d-none',!s);
+            if(s)document.getElementById('forgotUsername').focus();
+        }
+        window.addEventListener('load',()=>{
+            const t=setInterval(()=>{
+                if(window.System){
+                    clearInterval(t);
+                    if(window.System.currentUser)redirectUser(window.System.currentUser.role);
+                }
+            },100);
+
+            document.getElementById('loginForm').addEventListener('submit',async function(e){
+                e.preventDefault();
+                const b=document.getElementById('loginBtn'),o=b.innerHTML;
+                b.disabled=true;
+                b.innerHTML='<span class="spinner-border spinner-border-sm me-2"></span>...';
+                if(!window.System){alert('Loading... please wait.');b.disabled=false;b.innerHTML=o;return}
+                const r=await System.login(document.getElementById('username').value.trim(),document.getElementById('password').value);
+                if(r.success){
+                    b.classList.replace('btn-light','btn-success');
+                    b.innerHTML='Success!';
+                    setTimeout(()=>redirectUser(r.role),500);
+                }else{
+                    System.showToast(r.message,'danger');
+                    b.disabled=false;b.classList.replace('btn-success','btn-light');b.innerHTML=o;
+                }
+            });
+        });
+
+        document.addEventListener('keydown',e=>{
+            if(e.key==='Enter'&&!document.getElementById('forgotPanel').classList.contains('d-none'))submitForgot();
+        });
+
+        async function submitForgot(){
+            const u=document.getElementById('forgotUsername').value.trim();
+            const m=document.getElementById('forgotMsg'),b=document.getElementById('forgotBtn');
+            if(b.disabled)return;
+            m.classList.remove('d-none');
+            if(!u){m.textContent='Enter username';m.className='alert alert-warning small py-2 mb-3';return}
+
+            const origText = b.innerText;
+            b.disabled = true;
+            b.innerText = 'Sending...';
+            try{
+                const res=await(await fetch('forgot_password.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u})})).json();
+                m.textContent=res.message;
+                m.className=res.success?'alert alert-success small py-2 mb-3':'alert alert-danger small py-2 mb-3';
+                if(res.success) b.innerText='Sent';
+                else { b.disabled = false; b.innerText = origText; }
+            }catch(err){
+                m.textContent='Error: '+err.message;
+                m.className='alert alert-danger small py-2 mb-3';
+                b.disabled = false; b.innerText = origText;
+            }
+        }
+        function redirectUser(r){const m={Student:'student_dashboard.html',Teacher:'teacher_dashboard.html',Admin:'admin_dashboard.html',Solver:'solver_dashboard.html'};if(m[r])window.location.href=m[r]}
+    </script>
+</body>
+</html>

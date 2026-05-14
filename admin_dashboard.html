@@ -1,0 +1,1503 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniFix - Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="apple-touch-icon" sizes="180x180" href="./Img/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./Img/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./Img/favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="./Img/favicon_io/site.webmanifest">
+    <style>
+        @keyframes blinkBadge { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+        .blink-badge { animation: blinkBadge 1s infinite; }
+        .sla-row { border-left: 3px solid #dc3545 !important; }
+        .detail-box {
+            background-color: var(--bs-secondary-bg);
+            border-left: 4px solid var(--bs-primary);
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            margin-top: 8px;
+        }
+        .detail-item { display: flex; margin-bottom: 2px; }
+        .detail-label { font-weight: 700; color: var(--bs-primary); min-width: 90px; font-size: 0.75rem; text-transform: uppercase; }
+        .detail-value { color: var(--bs-body-color); }
+
+        .filter-btn.active {
+            background-color: var(--bs-primary);
+            color: white;
+            border-color: var(--bs-primary);
+        }
+        .btn-action { width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; }
+        #reportModal { z-index: 1070 !important; }
+        .modal-backdrop.show:nth-of-type(2) { z-index: 1060 !important; }
+        /* Confirm modal must sit above the report modal */
+        #globalConfirmModal { z-index: 1090 !important; }
+        .modal-backdrop.show:nth-of-type(3) { z-index: 1082 !important; }
+
+        #pageLoader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bs-body-bg); z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+            flex-direction: column; transition: opacity 0.5s;
+        }
+
+        [data-bs-theme="light"] .nav-pills .nav-link:not(.active) {
+            background-color: #f8f9fa !important; 
+            color: #212529 !important; 
+            border: 1px solid #dee2e6;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        [data-bs-theme="dark"] .nav-pills .nav-link:not(.active) {
+            background-color: #343a40 !important; 
+            color: #f8f9fa !important; 
+            border: 1px solid #495057;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .nav-pills .nav-link.active {
+            background-color: #0d6efd !important; 
+            color: #ffffff !important;
+
+            font-weight: 700;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        [data-bs-theme="dark"] .table thead th {
+            background-color: #000000 !important; 
+            color: #ffffff !important;
+            border-bottom: 2px solid #444;
+        }
+        [data-bs-theme="dark"] .table tbody td {
+            color: #e0e0e0;
+            border-bottom: 1px solid #333;
+        }
+        [data-bs-theme="dark"] .card-custom {
+            background-color: #121212 !important; 
+            border: 1px solid #333;
+        }
+        [data-bs-theme="dark"] .input-group-text, 
+        [data-bs-theme="dark"] .form-select {
+            background-color: #2c2c2c;
+            color: #ffffff;
+            border: 1px solid #555;
+        }
+
+        @media (max-width: 768px) {
+            .table thead { display: none; }
+            .table, .table tbody, .table tr, .table td { display: block; width: 100%; }
+            .table tr { 
+                margin-bottom: 20px; 
+                border: 1px solid #dee2e6; 
+                border-radius: 12px; 
+                padding: 15px; 
+                background: var(--bs-body-bg); 
+                box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            }
+            [data-bs-theme="dark"] .table tr { border-color: #444; }
+            .table td { 
+                display: flex; 
+                flex-direction: column; 
+                align-items: flex-start; 
+                text-align: left; 
+                border: none; 
+                padding: 8px 0; 
+                border-bottom: 1px dashed #eee; 
+                word-break: break-word;
+            }
+            [data-bs-theme="dark"] .table td { border-bottom-color: #333; }
+            .table td:last-child { border-bottom: none; }
+            .table td::before { 
+                content: attr(data-label); 
+                font-weight: 800; 
+                color: var(--bs-primary); 
+                margin-bottom: 4px;
+                text-transform: uppercase;
+                font-size: 0.7rem;
+            }
+            .btn-action { width: 45px; height: 45px; }
+            .dropdown, .input-group { width: 100% !important; margin-bottom: 10px; }
+            .dropdown-toggle { width: 100%; display: flex; justify-content: space-between; align-items: center; }
+        }
+    </style>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8057787763038301"
+     crossorigin="anonymous"></script>
+</head>
+<body class="bg-university d-flex flex-column min-vh-100">
+
+    <div id="pageLoader">
+        <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+        <h5 class="fw-bold text-muted">Connecting to Database...</h5>
+    </div>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm sticky-top">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-bold" href="#"><i class="bi bi-shield-lock-fill me-2"></i>UniFix Admin</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item me-3 d-none d-lg-block">
+                        <div id="liveClock" class="badge bg-white text-primary shadow-sm" style="font-size: 0.9rem;">00:00</div>
+                    </li>
+                    <li class="nav-item me-3">
+                        <span class="text-white user-display-name fw-bold">Admin</span>
+                    </li>
+
+                    <li class="nav-item me-2 dropdown">
+                        <button class="btn btn-outline-light btn-sm position-relative" id="notifBell" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-bell-fill"></i>
+                            <span id="notifBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.6rem;display:none;">0</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow" id="notifList" style="min-width:280px;max-height:320px;overflow-y:auto;">
+                            <li class="dropdown-item text-muted small">Loading...</li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item me-1">
+                        <button class="btn btn-outline-light btn-sm" onclick="openChangePasswordModal()" title="Change Password">
+                            <i class="bi bi-key-fill"></i>
+                        </button>
+                    </li>
+
+                    <li class="nav-item me-1">
+                        <button class="btn btn-outline-warning btn-sm" id="adminLeaveBtn" onclick="toggleAdminLeave()" title="Toggle On Leave">
+                            <i class="bi bi-calendar-x"></i>
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="btn btn-outline-light btn-sm me-2" onclick="System.toggleTheme()">
+                            <i id="themeIcon" class="bi bi-moon-stars-fill"></i>
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="btn btn-outline-light btn-sm me-2" onclick="System.toggleLanguage()">
+                            <i class="bi bi-translate"></i>
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="btn btn-danger btn-sm" onclick="System.logout()" data-i18n="logout">Logout</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div id="leaveBanner" class="alert alert-warning text-center mb-0 d-none rounded-0 py-2" style="font-size:0.9rem;">
+        <i class="bi bi-calendar-x-fill me-2"></i>
+        <strong>You are currently marked as On Leave.</strong> New reports will not be assigned to you.
+        <button class="btn btn-sm btn-warning ms-3" onclick="toggleAdminLeave()"><i class="bi bi-calendar-check me-1"></i>Return from Leave</button>
+    </div>
+
+    <div class="container-fluid px-4 py-4 fade-in">
+
+        <ul class="nav nav-pills mb-4 gap-2" id="pills-tab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active fw-bold shadow-sm" id="pills-reports-tab" data-bs-toggle="pill" data-bs-target="#pills-reports" type="button">
+                    <i class="bi bi-card-list me-2"></i><span data-i18n="manageReports">Manage Reports</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold shadow-sm" id="pills-users-tab" data-bs-toggle="pill" data-bs-target="#pills-users" type="button" onclick="loadUsers()">
+                    <i class="bi bi-people-fill me-2"></i><span data-i18n="userDb">User Database</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold shadow-sm" id="pills-analytics-tab" data-bs-toggle="pill" data-bs-target="#pills-analytics" type="button" onclick="loadAnalytics()">
+                    <i class="bi bi-graph-up me-2"></i>Analytics
+                </button>
+            </li>
+
+        </ul>
+
+        <div class="tab-content" id="pills-tabContent">
+
+            <div class="tab-pane fade show active" id="pills-reports" role="tabpanel">
+
+                <div class="card card-custom p-4 mb-4">
+                    <h5 class="text-warning mb-3 fw-bold"><i class="bi bi-hourglass-split me-2"></i><span data-i18n="incomingPending">Your Incoming Pending Reports</span></h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th data-i18n="reporter">Reporter</th>
+                                    <th data-i18n="category">Category</th>
+                                    <th data-i18n="description">Description</th>
+                                    <th data-i18n="urgency">Urgency</th>
+                                    <th data-i18n="actions">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pendingTableBody"></tbody>
+                        </table>
+                        <div id="noPendingMsg" class="text-center text-muted py-3 d-none" data-i18n="noPendingMsg">No reports assigned to you currently.</div>
+                    </div>
+                </div>
+
+                <div class="card card-custom p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                        <h5 class="text-primary fw-bold"><i class="bi bi-activity me-2"></i><span data-i18n="taskProgress">Task Progress Tracking</span></h5>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <input type="text" id="reportSearchInput" class="form-control form-control-sm shadow-sm" placeholder="Search category, reporter, status..." style="width:220px;" oninput="loadReports()">
+                            <div class="input-group shadow-sm" style="width:auto;">
+                                <label class="input-group-text" for="statusFilter" data-i18n="filterStatus">Filter</label>
+                                <select class="form-select" id="statusFilter" onchange="loadReports()">
+                                    <option value="My" data-i18n="myTasks">My Handled Tasks</option>
+                                    <option value="All" data-i18n="allTasks">All University Tasks</option>
+                                    <option value="Assigned">Assigned (Waiting)</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Finished" data-i18n="finished">Finished</option>
+                                    <option value="Declined" data-i18n="declined">Declined</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th data-i18n="date">Date</th>
+                                    <th data-i18n="category">Category</th>
+                                    <th data-i18n="assignedTo">Assigned To</th>
+                                    <th data-i18n="status">Status</th>
+                                    <th data-i18n="actions">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="progressTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="pills-users" role="tabpanel">
+                <div class="card card-custom p-4 mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+
+                        <div class="dropdown shadow-sm">
+                            <button class="btn btn-outline-primary dropdown-toggle fw-bold" type="button" id="userFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-filter-circle me-2"></i><span id="currentFilterLabel" data-i18n="allUsers">All Users</span>
+                            </button>
+                            <ul class="dropdown-menu shadow" aria-labelledby="userFilterDropdown">
+                                <li><a class="dropdown-item active" href="#" onclick="filterUsers('All', this, 'allUsers')">All Users</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="filterUsers('Student', this, 'students')">Students</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="filterUsers('Teacher', this, 'teachers')">Teachers</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="filterUsers('Solver', this, 'solvers')">Solvers</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="filterUsers('Admin', this, 'Admins')">Admins</a></li>
+                            </ul>
+                        </div>
+
+                        <div class="d-flex gap-2 flex-grow-1">
+                            <input type="text" id="userSearch" class="form-control" placeholder="Search Name/ID..." onkeyup="loadUsers()">
+                            <button class="btn btn-success flex-shrink-0" onclick="openAddStaffModal()"><i class="bi bi-person-plus-fill"></i> <span class="d-none d-md-inline" data-i18n="addStaff">Add Staff</span></button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th data-i18n="fullName">Full Name</th>
+                                    <th data-i18n="id">ID</th>
+                                    <th data-i18n="role">Role</th>
+                                    <th data-i18n="warnings">Warnings</th>
+                                    <th data-i18n="status">Status</th>
+                                    <th data-i18n="actions">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="pills-analytics" role="tabpanel">
+
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                    <div class="d-flex gap-2 align-items-center">
+                        <label class="fw-bold text-muted small"><i class="bi bi-calendar3 me-1"></i>Date Range:</label>
+                        <select id="analyticsDateFilter" class="form-select form-select-sm shadow-sm" style="width:auto;" onchange="handleAnalyticsDateFilter()">
+                            <option value="all">All Time</option>
+                            <option value="weekly">This Week</option>
+                            <option value="monthly">This Month</option>
+                            <option value="yearly">This Year</option>
+                            <option value="custom">Custom Range</option>
+                        </select>
+                        <div id="analyticsCustomDates" class="d-none gap-2 align-items-center">
+                            <input type="date" id="analyticsStartDate" class="form-control form-control-sm shadow-sm">
+                            <span class="text-muted">to</span>
+                            <input type="date" id="analyticsEndDate" class="form-control form-control-sm shadow-sm">
+                            <button class="btn btn-sm btn-primary shadow-sm" onclick="loadAnalytics()">Apply</button>
+                        </div>
+                    </div>
+
+                    <div class="dropdown">
+                        <button class="btn btn-success btn-sm shadow-sm" type="button" onclick="openExportModal()">
+                            <i class="bi bi-download me-1"></i>Export Data
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-3">
+                        <div class="card card-custom p-3 shadow-sm border-start border-primary border-4 h-100">
+                            <div class="text-xs fw-bold text-primary text-uppercase mb-1">Total Reports</div>
+                            <div class="h4 mb-0 fw-bold" id="kpiTotal">0</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card card-custom p-3 shadow-sm border-start border-warning border-4 h-100">
+                            <div class="text-xs fw-bold text-warning text-uppercase mb-1">Pending</div>
+                            <div class="h4 mb-0 fw-bold" id="kpiPending">0</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card card-custom p-3 shadow-sm border-start border-success border-4 h-100">
+                            <div class="text-xs fw-bold text-success text-uppercase mb-1">Resolved</div>
+                            <div class="h4 mb-0 fw-bold" id="kpiResolved">0</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card card-custom p-3 shadow-sm border-start border-info border-4 h-100">
+                            <div class="text-xs fw-bold text-info text-uppercase mb-1">Total Users</div>
+                            <div class="h4 mb-2 fw-bold" id="kpiUsers">0</div>
+                            <div class="d-flex flex-wrap gap-1 mt-auto" style="font-size:0.7rem;">
+                                <span class="badge bg-secondary">Admin: <span id="kpiAdmin">0</span></span>
+                                <span class="badge bg-primary">Solvers: <span id="kpiSolvers">0</span></span>
+                                <span class="badge bg-warning text-dark">Teachers: <span id="kpiTeachers">0</span></span>
+                                <span class="badge bg-info text-dark">Students: <span id="kpiStudents">0</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <div class="card card-custom p-4 shadow-sm h-100">
+                            <h5 class="fw-bold mb-3"><i class="bi bi-pie-chart-fill text-primary me-2"></i>Reports by Category</h5>
+                            <div style="position:relative;height:300px;">
+                                <canvas id="categoryChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="card card-custom p-4 shadow-sm h-100">
+                            <h5 class="fw-bold mb-3"><i class="bi bi-bar-chart-fill text-success me-2"></i>Report Status Breakdown</h5>
+                            <div style="position:relative;height:300px;">
+                                <canvas id="statusChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="card card-custom p-4 shadow-sm">
+                            <h5 class="fw-bold mb-3"><i class="bi bi-trophy-fill text-warning me-2"></i>Solver Performance (Completed Tasks)</h5>
+                            <div style="position:relative;height:350px;">
+                                <canvas id="solverChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="modal fade" id="reportModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" data-i18n="reportDetails">Report Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div id="reportDetailContent"></div>
+
+                    <div id="slaSection" class="mt-3 p-3 border rounded bg-light">
+                        <h6 class="fw-bold"><i class="bi bi-clock-history text-danger me-1"></i>SLA Timer</h6>
+                        <div id="slaStatus" class="small mb-2"></div>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button class="btn btn-outline-warning btn-sm" onclick="setSLATimer(12)">12h</button>
+                            <button class="btn btn-outline-warning btn-sm" onclick="setSLATimer(24)">24h</button>
+                            <button class="btn btn-outline-warning btn-sm" onclick="setSLATimer(48)">48h</button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="clearSLATimer()"><i class="bi bi-x-circle me-1"></i>Clear</button>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 border rounded">
+                        <div class="bg-dark text-white p-2 rounded-top d-flex align-items-center">
+                            <i class="bi bi-chat-dots-fill me-2"></i><strong>Ticket Chat</strong>
+                            <span id="chatMsgCount" class="badge bg-info ms-auto">0</span>
+                        </div>
+                        <div id="chatMessages" class="p-2" style="max-height:200px;overflow-y:auto;background:#f8f9fa;"></div>
+                        <div class="input-group p-2 border-top">
+                            <input type="text" id="chatInput" class="form-control form-control-sm" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendChatMsg()">
+                            <button id="adminChatSendBtn" class="btn btn-primary btn-sm" onclick="sendChatMsg()"><i class="bi bi-send"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="closeBtn">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="userModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title"><i class="bi bi-person-badge-fill me-2"></i><span data-i18n="userProfile">User Profile</span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+
+                    <h6 class="fw-bold text-uppercase text-muted mb-3 border-bottom pb-2"><i class="bi bi-info-circle me-1"></i>Account Information</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-6"><small class="text-muted d-block">Full Name</small><strong id="mName"></strong></div>
+                        <div class="col-6"><small class="text-muted d-block">Role</small><strong id="mRole"></strong></div>
+                        <div class="col-6">
+                            <label class="small text-muted d-block">Email Address</label>
+                            <input type="email" id="editUserEmail" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-6">
+                            <label class="small text-muted d-block">Phone Number</label>
+                            <input type="tel" id="editUserPhone" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-6"><small class="text-muted d-block">Username</small><strong id="mUser"></strong></div>
+                        <div class="col-6"><small class="text-muted d-block">University ID</small><strong id="mId"></strong></div>
+                        <div class="col-6"><small class="text-muted d-block">Registered</small><strong id="mCreated">—</strong></div>
+                        <div class="col-12">
+                            <button id="updateContactBtn" class="btn btn-sm btn-primary mt-2" onclick="updateUserContact()"><i class="bi bi-save me-1"></i>Update Contact Info</button>
+                        </div>
+                    </div>
+
+                    <div id="studentDetailsSection" class="d-none">
+                        <h6 class="fw-bold text-uppercase text-muted mb-3 border-bottom pb-2"><i class="bi bi-mortarboard me-1"></i>Student Details</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-6"><small class="text-muted d-block">Department</small><strong id="mDept">—</strong></div>
+                            <div class="col-6"><small class="text-muted d-block">Year of Study</small><strong id="mYear">—</strong></div>
+                            <div class="col-6"><small class="text-muted d-block">Block No.</small><strong id="mBlock">—</strong></div>
+                            <div class="col-6"><small class="text-muted d-block">Dorm No.</small><strong id="mDorm">—</strong></div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 d-none" id="leaveToggleContainer">
+                        <button id="toggleLeaveBtn" class="btn btn-sm btn-outline-secondary w-100 fw-bold mb-3" onclick="toggleLeaveUser()">Mark On Leave</button>
+                    </div>
+
+                    <div id="idPhotosSection" class="d-none mb-4">
+                        <h6 class="fw-bold text-uppercase text-muted mb-3 border-bottom pb-2"><i class="bi bi-card-image me-1"></i>ID Card Photos</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6 text-center">
+                                <div class="small fw-bold text-muted mb-1"><i class="bi bi-front me-1"></i>Front of ID</div>
+                                <img id="mIdFront" src="" class="img-fluid rounded border shadow-sm" style="max-height:180px;cursor:pointer;" onclick="window.open(this.src,'_blank')" alt="Front ID">
+                                <div id="mIdFrontMissing" class="text-muted small fst-italic d-none">Not uploaded</div>
+                            </div>
+                            <div class="col-md-6 text-center">
+                                <div class="small fw-bold text-muted mb-1"><i class="bi bi-upc-scan me-1"></i>Back of ID (Barcode)</div>
+                                <img id="mIdBack" src="" class="img-fluid rounded border shadow-sm" style="max-height:180px;cursor:pointer;" onclick="window.open(this.src,'_blank')" alt="Back ID">
+                                <div id="mIdBackMissing" class="text-muted small fst-italic d-none">Not uploaded</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold text-uppercase text-muted mb-3 border-bottom pb-2"><i class="bi bi-shield-exclamation me-1"></i>Disciplinary Record</h6>
+                    <label class="form-label small fw-bold text-warning" data-i18n="warningReason">Reason for Warning:</label>
+                    <textarea id="warningReasonInput" class="form-control mb-2" rows="2" placeholder="Required for warning..."></textarea>
+                    <div class="p-2 bg-light border rounded d-flex justify-content-between align-items-center mb-2">
+                        <span><i class="bi bi-exclamation-triangle text-warning me-2"></i><span data-i18n="warnings">Warnings</span></span>
+                        <span id="mWarn" class="badge bg-danger rounded-pill">0/3</span>
+                    </div>
+                    <div id="warningHistoryContainer" class="small text-muted border-top pt-2" style="max-height:100px;overflow-y:auto;"></div>
+                </div>
+                <div class="modal-footer justify-content-between flex-wrap gap-2">
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button id="deleteUserBtn" class="btn btn-outline-danger" onclick="deleteUser()" data-i18n="removeUser">Remove User</button>
+                        <button class="btn btn-outline-secondary" id="unbanBtn" onclick="unbanUser()" style="display:none;"><i class="bi bi-unlock-fill me-1"></i>Unban User</button>
+                        <button id="retractWarnBtn" class="btn btn-outline-warning" onclick="retractWarning()" title="Retract last warning"><i class="bi bi-arrow-counterclockwise me-1"></i>Retract Warning</button>
+                    </div>
+                    <button id="sendWarningBtn" class="btn btn-warning" onclick="sendWarning()" data-i18n="sendWarning">Send Warning</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="modal fade" id="addStaffModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="bi bi-person-plus-fill me-2"></i><span data-i18n="addStaff">Add Staff</span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addStaffForm">
+                        <div class="mb-3">
+                            <label class="form-label" data-i18n="staffRole">Role</label>
+                            <select id="newStaffRole" class="form-select" onchange="toggleJobTitle()" required>
+                                <option value="Admin">System Admin</option>
+                                <option value="Solver">Staff / Solver</option>
+                            </select>
+                        </div>
+                        <div class="mb-3 d-none" id="jobTitleDiv">
+                            <label class="form-label" data-i18n="jobTitle">Job Title</label>
+                            <select id="newStaffJob" class="form-select">
+                                <option value="Staff Human Resource Manager">Staff Human Resource Manager</option>
+                                <option value="Staff General Technician">Staff General Technician</option>
+                                <option value="Staff Dean">Staff Dean</option>
+                                <option value="Staff ICT Manager">Staff ICT Manager</option>
+                                <option value="Staff Cafeteria Manager">Staff Cafeteria Manager</option>
+                                <option value="Staff Finance Manager">Staff Finance Manager</option>
+                                <option value="Staff Department Head">Staff Department Head</option>
+                                <option value="Staff Health Center Manager">Staff Health Center Manager</option>
+                                <option value="Staff University Administration Manager">Staff University Administration Manager</option>
+                                <option value="Staff Dormitory Manager">Staff Dormitory Manager</option>
+                                <option value="Staff Campus Security Manager">Staff Campus Security Manager</option>
+                                <option value="Staff Academic Resources Manager">Staff Academic Resources Manager</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" data-i18n="fullName">Full Name</label>
+                            <input type="text" id="newStaffName" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" data-i18n="username">Username</label>
+                            <input type="text" id="newStaffUser" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" data-i18n="password">Password</label>
+                            <div class="input-group">
+                                <input type="password" id="newStaffPass" class="form-control" required>
+                                <button class="btn btn-outline-secondary" type="button" onclick="toggleStaffPwd()">
+                                    <i class="bi bi-eye" id="staffEyeIcon"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" id="newStaffEmail" class="form-control" placeholder="staff@gmail.com">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" id="newStaffPhone" class="form-control" placeholder="09...">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button id="confirmAddStaffBtn" type="button" class="btn btn-success" onclick="confirmAddStaff()" data-i18n="createAcc">Create Account</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="declineModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Decline Report</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="declineReportId">
+                    <label class="form-label fw-bold" data-i18n="reasonDecline">Reason:</label>
+                    <textarea id="declineReasonInput" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" id="confirmDeclineBtn" class="btn btn-danger" onclick="confirmDecline()">Decline</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="userHistoryModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title"><i class="bi bi-clock-history me-2"></i><span id="histTitle">History</span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th data-i18n="date">Date</th><th data-i18n="category">Category</th><th data-i18n="description">Desc</th><th data-i18n="status">Status</th><th data-i18n="actions">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="userHistoryBody"></tbody>
+                        </table>
+                        <div id="noUserHistoryMsg" class="text-center text-muted d-none" data-i18n="noUserReports">No reports found.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="globalConfirmModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" data-i18n="confirmTitle">Confirm</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="globalConfirmBody">Sure?</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="cancelBtn">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="globalConfirmBtn" data-i18n="confirmBtn">Yes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="exportModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="bi bi-download me-2"></i>Export Analytics Data</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Select Date Range for Export:</label>
+                        <select id="exportDateFilter" class="form-select" onchange="handleExportDateFilter()">
+                            <option value="daily">Daily (Today)</option>
+                            <option value="weekly">Weekly (Last 7 Days)</option>
+                            <option value="monthly">Monthly (Last 30 Days)</option>
+                            <option value="yearly">Yearly (Last 365 Days)</option>
+                            <option value="all">All Time</option>
+                            <option value="custom">Custom Specific Date / Range</option>
+                        </select>
+                    </div>
+                    <div id="exportCustomDates" class="d-none bg-light p-3 border rounded mb-3">
+                        <div class="mb-2">
+                            <label class="form-label small text-muted">Start Date</label>
+                            <input type="date" id="exportStartDate" class="form-control form-control-sm">
+                        </div>
+                        <div>
+                            <label class="form-label small text-muted">End Date</label>
+                            <input type="date" id="exportEndDate" class="form-control form-control-sm">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <div>
+                        <button type="button" class="btn btn-danger me-2" onclick="executeExport('pdf')"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</button>
+                        <button type="button" class="btn btn-success" onclick="executeExport('csv')"><i class="bi bi-file-earmark-spreadsheet me-1"></i>CSV</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="changePasswordModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="bi bi-key-fill me-2"></i>Change Password</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Current Password</label>
+                        <div class="input-group">
+                            <input type="password" id="cpCurrentPass" class="form-control" placeholder="Enter current password">
+                            <button class="btn btn-outline-secondary" type="button" onclick="toggleCpEye('cpCurrentPass','eyeCur')"><i id="eyeCur" class="bi bi-eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">New Password</label>
+                        <div class="input-group">
+                            <input type="password" id="cpNewPass" class="form-control" placeholder="Enter new password (min 6 chars)">
+                            <button class="btn btn-outline-secondary" type="button" onclick="toggleCpEye('cpNewPass','eyeNew')"><i id="eyeNew" class="bi bi-eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Confirm New Password</label>
+                        <div class="input-group">
+                            <input type="password" id="cpConfirmPass" class="form-control" placeholder="Repeat new password">
+                            <button class="btn btn-outline-secondary" type="button" onclick="toggleCpEye('cpConfirmPass','eyeCf')"><i id="eyeCf" class="bi bi-eye"></i></button>
+                        </div>
+                    </div>
+                    <div id="cpError" class="alert alert-danger d-none small"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="submitChangePassword()"><i class="bi bi-check-lg me-1"></i>Update Password</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module" src="js/main.js?v=2.0"></script>
+
+    <script>
+        let selectedUsername = null, currentFilter = 'All', currentUser;
+        let userModal, reportModal, declineModal, userHistoryModal, addStaffModal, exportModalInstance, changePasswordModal;
+
+        window.addEventListener('load', async () => {
+            const checkSystem = setInterval(() => {
+                if (window.System && window.System.currentUser) {
+                    clearInterval(checkSystem);
+                    initializeAdmin();
+                } else if (window.System && !window.System.currentUser) {
+                    clearInterval(checkSystem);
+                    window.location.href = 'index.html';
+                }
+            }, 100);
+        });
+
+        function initializeAdmin() {
+            currentUser = System.checkAuth('Admin');
+            userModal = new bootstrap.Modal(document.getElementById('userModal'));
+            reportModal = new bootstrap.Modal(document.getElementById('reportModal'));
+            declineModal = new bootstrap.Modal(document.getElementById('declineModal'));
+            userHistoryModal = new bootstrap.Modal(document.getElementById('userHistoryModal'));
+            addStaffModal = new bootstrap.Modal(document.getElementById('addStaffModal'));
+            exportModalInstance = new bootstrap.Modal(document.getElementById('exportModal'));
+            changePasswordModal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
+            document.getElementById('pageLoader').style.opacity = '0'; 
+            setTimeout(() => document.getElementById('pageLoader').remove(), 500);
+            window.loadReports();
+            System.initNotificationBell('notifBell', 'notifBadge', 'notifList');
+            // Show on-leave banner if admin is on leave
+            if (currentUser && currentUser.isOnLeave) {
+                document.getElementById('leaveBanner').classList.remove('d-none');
+                const btn = document.getElementById('adminLeaveBtn');
+                if (btn) { btn.classList.remove('btn-outline-warning'); btn.classList.add('btn-warning'); btn.title = 'Return from Leave'; }
+            }
+        }
+
+        const SOLVER_MAP = {
+            "Dormitory": "Staff Dormitory Manager",
+            "Health": "Staff Health Center Manager",
+            "Cafeteria": "Staff Cafeteria Manager",
+            "Academic": "Staff Dean",
+            "Teaching Materials": "Staff Academic Resources Manager",
+            "Classroom Mgmt": "Staff Department Head", 
+            "Work Environment": "Staff Human Resource Manager", 
+            "Administrative": "Staff University Administration Manager",
+            "Technology": "Staff ICT Manager", 
+            "Social": "Staff Campus Security Manager",
+            "Other": "Staff General Technician"
+        };
+
+        window.getTrans = (key) => window.System ? (System.getTrans(key)) : key;
+
+        window.loadReports = () => {
+            const data = System.getData(), pBody = document.getElementById('pendingTableBody'), prBody = document.getElementById('progressTableBody');
+            const filter = document.getElementById('statusFilter').value;
+            pBody.innerHTML = ''; prBody.innerHTML = '';
+
+            const all = data.reports.filter(r => !r.hiddenFromAdmin);
+
+            all.filter(r => r.status === 'Pending' && r.assignedPendingAdmin === currentUser.username).forEach(r => {
+
+                let locDetails = `<div class="fw-bold">${r.category}</div><div class="text-muted small mb-1">${r.description}</div>`;
+                if(r.specificDetails) {
+                    locDetails += `<div class="detail-box">`;
+                    for(let [k,v] of Object.entries(r.specificDetails)) if(v) locDetails += `<div class="detail-item"><span class="detail-label">${k.replace(/([A-Z])/g, ' $1')}:</span><span class="detail-value">${v}</span></div>`;
+                    locDetails += `</div>`;
+                }
+
+                pBody.innerHTML += `
+                    <tr>
+                        <td data-label="${window.getTrans('reporter')}"><strong>${r.reporterName}</strong><br><small>${r.reporterId}</small></td>
+                        <td data-label="${window.getTrans('category')}">${r.category}</td>
+                        <td data-label="${window.getTrans('description')}">${locDetails}</td>
+                        <td data-label="${window.getTrans('urgency')}"><span class="badge bg-danger">${r.urgency}</span></td>
+                        <td data-label="${window.getTrans('actions')}">
+                            <div class="d-flex gap-2 justify-content-end">
+                                <button class="btn btn-primary btn-action" onclick="viewDetails(${r.id})"><i class="bi bi-eye"></i></button>
+                                <button class="btn btn-success btn-action" onclick="assignTask(${r.id}, '${r.category}', this)"><i class="bi bi-check-lg"></i></button>
+                                <button class="btn btn-danger btn-action" onclick="initDecline(${r.id})"><i class="bi bi-x-lg"></i></button>
+                            </div>
+                        </td>
+                    </tr>`;
+            });
+
+            let active = all.filter(r => r.status !== 'Pending');
+            if (filter === 'My') active = active.filter(r => r.assignedAdminUsername === currentUser.username);
+            else if (filter !== 'All') active = active.filter(r => r.status === filter);
+
+            // Search filter
+            const searchTxt = (document.getElementById('reportSearchInput')?.value || '').toLowerCase();
+            if (searchTxt) {
+                active = active.filter(r =>
+                    (r.category || '').toLowerCase().includes(searchTxt) ||
+                    (r.reporterName || '').toLowerCase().includes(searchTxt) ||
+                    (r.assignedSolverName || '').toLowerCase().includes(searchTxt) ||
+                    (r.status || '').toLowerCase().includes(searchTxt) ||
+                    String(r.id).includes(searchTxt)
+                );
+            }
+
+            active.forEach(r => {
+                let badge = r.status === 'Assigned' ? 'bg-info text-white' : (r.status === 'In Progress' ? 'bg-primary' : (['Finished','Completed'].includes(r.status) ? 'bg-success' : 'bg-danger'));
+                let slaTag = r.slaEscalated ? '<span class="badge bg-danger blink-badge ms-1">⏱️ SLA</span>' : '';
+                let chatTag = r.messageCount ? `<span class="badge bg-info ms-1"><i class="bi bi-chat-dots"></i> ${r.messageCount}</span>` : '';
+                let delegateTag = r.delegatedFrom ? '<span class="badge bg-warning text-dark ms-1"><i class="bi bi-arrow-left-right"></i></span>' : '';
+                prBody.innerHTML += `
+                    <tr class="${r.slaEscalated ? 'sla-row' : ''}">
+                        <td data-label="${window.getTrans('date')}"><small>${r.date}</small></td>
+                        <td data-label="${window.getTrans('category')}">${r.category}</td>
+                        <td data-label="${window.getTrans('assignedTo')}"><small>${r.assignedTo || '-'}</small><br><small class="text-muted" style="font-size:0.75rem">${r.assignedSolverName || ''}</small></td>
+                        <td data-label="${window.getTrans('status')}"><span class="badge ${badge}">${r.status}</span>${slaTag}${chatTag}${delegateTag}</td>
+                        <td data-label="${window.getTrans('actions')}">
+                            <div class="d-flex gap-2 justify-content-end">
+                                <button class="btn btn-primary btn-sm" onclick="viewDetails(${r.id})">View</button>
+                                ${['Finished','Completed','Declined'].includes(r.status) ? `<button class="btn btn-danger btn-sm" onclick="deleteReport(${r.id})"><i class="bi bi-trash"></i></button>` : ''}
+                            </div>
+                        </td>
+                    </tr>`;
+            });
+        };
+
+        window.assignTask = async (id, cat, btn) => {
+            const job = SOLVER_MAP[cat] || "Staff General Technician";
+            System.setLoading(btn, true, "");
+            if(await System.updateReportStatus(id, 'Assigned', job, null, currentUser.username)) { 
+                System.showToast(`Assigned to ${job}`, "success"); 
+                window.loadReports(); 
+            } else {
+                System.setLoading(btn, false);
+            }
+        };
+
+        window.toggleAdminLeave = async () => {
+            if (!currentUser) return;
+            const res = await System.toggleLeave(currentUser.username);
+            if (res.success) {
+                const onLeave = res.isOnLeave;
+                const banner = document.getElementById('leaveBanner');
+                const btn = document.getElementById('adminLeaveBtn');
+                banner.classList.toggle('d-none', !onLeave);
+                if (btn) {
+                    btn.classList.toggle('btn-warning', onLeave);
+                    btn.classList.toggle('btn-outline-warning', !onLeave);
+                    btn.title = onLeave ? 'Return from Leave' : 'Mark as On Leave';
+                }
+                currentUser.isOnLeave = onLeave;
+                System.showToast(onLeave ? '🏖️ You are now On Leave.' : '✅ Welcome back! Leave ended.', onLeave ? 'warning' : 'success');
+            } else {
+                System.showToast(res.message || 'Failed to update leave status.', 'danger');
+            }
+        };
+
+        window.openChangePasswordModal = () => {
+            document.getElementById('cpCurrentPass').value = '';
+            document.getElementById('cpNewPass').value = '';
+            document.getElementById('cpConfirmPass').value = '';
+            document.getElementById('cpError').classList.add('d-none');
+            changePasswordModal.show();
+        };
+
+        window.submitChangePassword = async () => {
+            const cur = document.getElementById('cpCurrentPass').value;
+            const nw = document.getElementById('cpNewPass').value;
+            const cf = document.getElementById('cpConfirmPass').value;
+            const errEl = document.getElementById('cpError');
+            errEl.classList.add('d-none');
+            if (!cur || !nw || !cf) { errEl.textContent = 'All fields are required.'; errEl.classList.remove('d-none'); return; }
+            if (nw.length < 6) { errEl.textContent = 'New password must be at least 6 characters.'; errEl.classList.remove('d-none'); return; }
+            if (nw !== cf) { errEl.textContent = 'New passwords do not match.'; errEl.classList.remove('d-none'); return; }
+            const res = await System.changePassword(cur, nw);
+            if (res.success) {
+                changePasswordModal.hide();
+                System.showToast('Password changed successfully!', 'success');
+            } else {
+                errEl.textContent = res.message || 'Failed to change password.';
+                errEl.classList.remove('d-none');
+            }
+        };
+
+        window.toggleCpEye = (inputId, iconId) => {
+            const inp = document.getElementById(inputId);
+            const ico = document.getElementById(iconId);
+            if (inp.type === 'password') { inp.type = 'text'; ico.classList.replace('bi-eye', 'bi-eye-slash'); }
+            else { inp.type = 'password'; ico.classList.replace('bi-eye-slash', 'bi-eye'); }
+        };
+
+        window.filterUsers = (role, element, labelKey) => {
+            currentFilter = role;
+            document.querySelectorAll('.dropdown-item').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+            document.getElementById('currentFilterLabel').innerText = window.getTrans(labelKey);
+            window.loadUsers();
+        };
+
+        window.loadUsers = () => {
+            const txt = document.getElementById('userSearch').value.toLowerCase();
+            const tbody = document.getElementById('usersTableBody');
+            tbody.innerHTML = '';
+            System.getData().users.forEach(u => {
+                if((currentFilter === 'All' || u.role === currentFilter) && (u.fullName.toLowerCase().includes(txt) || u.id.toLowerCase().includes(txt))) {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td data-label="${window.getTrans('fullName')}">${u.fullName}</td>
+                            <td data-label="${window.getTrans('id')}"><small>${u.id}</small></td>
+                            <td data-label="${window.getTrans('role')}">${u.role}</td>
+                            <td data-label="${window.getTrans('warnings')}">${u.warnings}/3</td>
+                            <td data-label="${window.getTrans('status')}"><span class="badge ${u.isBanned ? 'bg-danger' : 'bg-success'}">${u.isBanned ? 'Banned' : 'Active'}</span></td>
+                            <td data-label="${window.getTrans('actions')}">
+                                <div class="d-flex gap-2 justify-content-end">
+                                    <button class="btn btn-info btn-action text-white" onclick="viewUserHistory('${u.username}', '${u.role}')"><i class="bi bi-clock-history"></i></button>
+                                    <button class="btn btn-outline-primary btn-sm" onclick="openUserModal('${u.username}')">Manage</button>
+                                </div>
+                            </td>
+                        </tr>`;
+                }
+            });
+        };
+
+        window.viewUserHistory = (username, role) => {
+            const data = System.getData(), tbody = document.getElementById('userHistoryBody');
+            let reports = role === 'Solver' ? data.reports.filter(r => r.assignedSolverUsername === username) : (role === 'Admin' ? data.reports.filter(r => r.assignedAdminUsername === username) : data.reports.filter(r => r.reporterUsername === username));
+            tbody.innerHTML = ''; reports.reverse().forEach(r => {
+                tbody.innerHTML += `<tr><td data-label="${window.getTrans('date')}">${r.date}</td><td data-label="${window.getTrans('category')}">${r.category}</td><td data-label="${window.getTrans('status')}">${r.status}</td><td data-label="${window.getTrans('actions')}"><button class="btn btn-sm btn-primary" onclick="viewDetails(${r.id})">View</button></td></tr>`;
+            });
+            userHistoryModal.show();
+        };
+
+        window.openUserModal = (uName) => {
+            const u = System.getData().users.find(x => x.username === uName);
+            selectedUsername = uName;
+
+            // Basic info
+            document.getElementById('mName').innerText    = u.fullName;
+            document.getElementById('editUserEmail').value = u.email || '';
+            document.getElementById('editUserPhone').value = u.phone || '';
+            document.getElementById('mRole').innerText    = u.role;
+            document.getElementById('mUser').innerText    = u.username;
+            document.getElementById('mId').innerText      = u.id || u.userId || '—';
+            document.getElementById('mCreated').innerText = u.createdAt ? u.createdAt.split(' ')[0] : '—';
+            document.getElementById('mWarn').innerText    = `${u.warnings}/3`;
+
+            // Student-specific section
+            const studSection = document.getElementById('studentDetailsSection');
+            if(u.role === 'Student') {
+                studSection.classList.remove('d-none');
+                document.getElementById('mDept').innerText  = u.dept || '—';
+                document.getElementById('mYear').innerText  = u.yearOfStudy || '—';
+                document.getElementById('mBlock').innerText = u.blockNumber || '—';
+                document.getElementById('mDorm').innerText  = u.dormNumber  || '—';
+            } else {
+                studSection.classList.add('d-none');
+            }
+
+            // Solver/Admin On Leave toggle
+            const leaveContainer = document.getElementById('leaveToggleContainer');
+            const toggleLeaveBtn = document.getElementById('toggleLeaveBtn');
+            if(u.role === 'Solver' || u.role === 'Admin') {
+                leaveContainer.classList.remove('d-none');
+                if(u.isOnLeave) {
+                    toggleLeaveBtn.innerText = "Mark Active";
+                    toggleLeaveBtn.className = "btn btn-sm btn-success w-100 fw-bold mb-3";
+                } else {
+                    toggleLeaveBtn.innerText = "Mark On Leave";
+                    toggleLeaveBtn.className = "btn btn-sm btn-outline-secondary w-100 fw-bold mb-3";
+                }
+            } else {
+                leaveContainer.classList.add('d-none');
+            }
+
+            // ID photos (show for Student & Teacher)
+            const idSection = document.getElementById('idPhotosSection');
+            if(u.role === 'Student' || u.role === 'Teacher') {
+                idSection.classList.remove('d-none');
+
+                const frontImg = document.getElementById('mIdFront');
+                const frontMissing = document.getElementById('mIdFrontMissing');
+                if(u.idPhotoFront) {
+                    frontImg.src = u.idPhotoFront; frontImg.classList.remove('d-none'); frontMissing.classList.add('d-none');
+                } else {
+                    frontImg.classList.add('d-none'); frontMissing.classList.remove('d-none');
+                }
+
+                const backImg = document.getElementById('mIdBack');
+                const backMissing = document.getElementById('mIdBackMissing');
+                if(u.idPhotoBack) {
+                    backImg.src = u.idPhotoBack; backImg.classList.remove('d-none'); backMissing.classList.add('d-none');
+                } else {
+                    backImg.classList.add('d-none'); backMissing.classList.remove('d-none');
+                }
+            } else {
+                idSection.classList.add('d-none');
+            }
+
+            // Warning history
+            const warnHistoryContainer = document.getElementById('warningHistoryContainer');
+            warnHistoryContainer.innerHTML = '';
+            if(u.warningHistory && u.warningHistory.length > 0) {
+                u.warningHistory.forEach((w, i) => {
+                    warnHistoryContainer.innerHTML += `<div class="mb-1"><strong>Warning ${i+1} (${w.date}):</strong> ${w.reason}</div>`;
+                });
+            } else if (u.lastWarningReason) {
+                warnHistoryContainer.innerHTML = `<div class="mb-1"><strong>Last Warning:</strong> ${u.lastWarningReason}</div>`;
+            } else {
+                warnHistoryContainer.innerHTML = '<em>No warning history</em>';
+            }
+
+            // Show/hide unban button based on ban status
+            const unbanBtn = document.getElementById('unbanBtn');
+            if (unbanBtn) unbanBtn.style.display = u.isBanned ? 'inline-flex' : 'none';
+
+            userModal.show();
+        };
+
+        window.toggleLeaveUser = async () => {
+            if(!selectedUsername) return;
+            const btn = document.getElementById('toggleLeaveBtn');
+            System.setLoading(btn, true);
+            const res = await System.toggleLeave(selectedUsername);
+            System.setLoading(btn, false);
+            if(res && res.success) {
+                System.showToast("Leave status updated.", "success");
+                window.loadUsers();
+                openUserModal(selectedUsername);
+            }
+        };
+
+        window.sendWarning = () => {
+            const r = document.getElementById('warningReasonInput').value.trim();
+            const btn = document.getElementById('sendWarningBtn');
+            if(!r) return System.showToast("Reason required", "warning");
+            System.confirmAction("Send warning to this user?", async () => {
+                System.setLoading(btn, true, "Sending...");
+                const res = await System.warnUser(selectedUsername, r);
+                System.setLoading(btn, false);
+                if (res.success) {
+                    System.showToast('Warning sent.', 'warning');
+                    userModal.hide();
+                    await System.refreshData();
+                    window.loadUsers();
+                } else { System.showToast(res.message || 'Failed', 'danger'); }
+            });
+        };
+
+        window.unbanUser = () => {
+            const btn = document.getElementById('unbanBtn');
+            System.confirmAction("Unban this user? They will be able to log in again.", async () => {
+                System.setLoading(btn, true, "Unbanning...");
+                const res = await System.unbanUser(selectedUsername);
+                System.setLoading(btn, false);
+                if (res.success) {
+                    System.showToast('User unbanned successfully.', 'success');
+                    userModal.hide();
+                    await System.refreshData();
+                    window.loadUsers();
+                } else { System.showToast(res.message || 'Failed', 'danger'); }
+            });
+        };
+
+        window.retractWarning = () => {
+            const btn = document.getElementById('retractWarnBtn');
+            System.confirmAction("Retract the last warning from this user?", async () => {
+                System.setLoading(btn, true, "Retracting...");
+                const res = await System.retractWarning(selectedUsername);
+                System.setLoading(btn, false);
+                if (res.success) {
+                    System.showToast(`Warning retracted. User now has ${res.warnings} warning(s).`, 'info');
+                    userModal.hide();
+                    await System.refreshData();
+                    window.loadUsers();
+                } else { System.showToast(res.message || 'No warnings to retract.', 'warning'); }
+            });
+        };
+
+        window.updateUserContact = async () => {
+            if(!selectedUsername) return;
+            const email = document.getElementById('editUserEmail').value.trim();
+            const phone = document.getElementById('editUserPhone').value.trim();
+            const btn = document.getElementById('updateContactBtn');
+
+            System.confirmAction("Update contact information?", async () => {
+                System.setLoading(btn, true, "Updating...");
+                try {
+                    const res = await System.updateUserContact(selectedUsername, email, phone);
+                    System.setLoading(btn, false);
+                    if(res && res.success) {
+                        System.showToast("Contact information updated.", "success");
+                        window.loadUsers();
+                    } else {
+                        System.showToast(res.message || "Update failed", "danger");
+                    }
+                } catch (err) {
+                    System.setLoading(btn, false);
+                    System.showToast("Network Error: " + err.message, "danger");
+                }
+            });
+        };
+
+        window.deleteUser = () => { System.confirmAction("Delete user?", async () => { const btn = document.getElementById('deleteUserBtn'); System.setLoading(btn, true, "Deleting..."); await System.deleteUser(selectedUsername); System.setLoading(btn, false); userModal.hide(); window.loadUsers(); window.loadReports(); }); };
+        window.openAddStaffModal = () => { document.getElementById('addStaffForm').reset(); toggleJobTitle(); addStaffModal.show(); };
+        window.toggleJobTitle = () => { document.getElementById('jobTitleDiv').classList.toggle('d-none', document.getElementById('newStaffRole').value !== 'Solver'); };
+        window.toggleStaffPwd = () => { const inp = document.getElementById('newStaffPass'), ico = document.getElementById('staffEyeIcon'); if(inp.type === 'password') { inp.type = 'text'; ico.classList.replace('bi-eye', 'bi-eye-slash'); } else { inp.type = 'password'; ico.classList.replace('bi-eye-slash', 'bi-eye'); } };
+        window.confirmAddStaff = async () => {
+            const role = document.getElementById('newStaffRole').value;
+            const btn = document.getElementById('confirmAddStaffBtn');
+            const staff = { 
+                role: role, 
+                fullName: document.getElementById('newStaffName').value, 
+                username: document.getElementById('newStaffUser').value, 
+                password: document.getElementById('newStaffPass').value,
+                email: document.getElementById('newStaffEmail').value,
+                phone: document.getElementById('newStaffPhone').value,
+                jobTitle: role === 'Solver' ? document.getElementById('newStaffJob').value : "System Admin",
+                id: 'STAFF_' + Date.now() // Generating a temporary ID for staff
+            };
+            if(!staff.fullName || !staff.username || !staff.password) return System.showToast("Fill all fields", "warning");
+            System.setLoading(btn, true, "Creating...");
+            const res = await System.addStaff(staff); 
+            System.setLoading(btn, false);
+            if(res.success) { addStaffModal.hide(); window.loadUsers(); } else System.showToast(res.message, "danger");
+        };
+
+        window.initDecline = (id) => { document.getElementById('declineReportId').value = id; document.getElementById('declineReasonInput').value = ''; declineModal.show(); };
+        window.confirmDecline = async () => {
+            const id = parseInt(document.getElementById('declineReportId').value), reason = document.getElementById('declineReasonInput').value.trim();
+            if(!reason) return System.showToast("Reason required", "warning");
+            const btn = document.getElementById('confirmDeclineBtn');
+            System.setLoading(btn, true, "Declining...");
+            await System.updateReportStatus(id, 'Declined', 'Admin', reason, currentUser.username); 
+            System.setLoading(btn, false);
+            declineModal.hide(); 
+            window.loadReports();
+        };
+
+        let currentReportId = null;
+
+        window.viewDetails = async (id) => {
+            const r = System.getData().reports.find(x => x.id === id); if(!r) return;
+            currentReportId = id;
+
+            let html = `
+                <div class="row g-3 mb-4">
+                    <div class="col-6"><small class="text-muted d-block">Reporter</small><strong>${r.reporterName}</strong></div>
+                    <div class="col-6"><small class="text-muted d-block">Status</small><span class="badge bg-${r.status === 'Pending' ? 'warning' : (['Finished','Completed'].includes(r.status) ? 'success' : (r.status === 'Declined' ? 'danger' : 'info'))}">${r.status}</span></div>
+                    <div class="col-6"><small class="text-muted d-block">Category</small><strong>${r.category}</strong></div>
+                    <div class="col-6"><small class="text-muted d-block">Urgency</small><span class="text-${r.urgency === 'High' || r.urgency === 'Urgent' ? 'danger' : (r.urgency === 'Medium' ? 'warning' : 'primary')} fw-bold">${r.urgency}</span></div>
+                    <div class="col-12"><small class="text-muted d-block">Description</small><div class="p-2 bg-light border rounded small">${r.description}</div></div>
+                </div>`;
+
+            if(r.photoUrl) {
+                html += `<div class="mb-4"><small class="text-muted d-block mb-1">Attached Photo</small><img src="${r.photoUrl}" class="img-fluid rounded border shadow-sm" style="max-height:300px;cursor:pointer;" onclick="window.open(this.src,'_blank')"></div>`;
+            }
+
+            // Delegation Trail
+            if(r.delegatedFrom) {
+                const fromUser = System.getData().users.find(u => u.username === r.delegatedFrom);
+                html += `
+                <div class="mb-4 p-3 border border-info rounded bg-light-info">
+                    <h6 class="fw-bold text-info small"><i class="bi bi-info-circle-fill me-1"></i>Delegation Info</h6>
+                    <div class="small">
+                        <strong>Delegated By:</strong> ${fromUser ? fromUser.fullName : r.delegatedFrom}<br>
+                        <strong>Assigned To:</strong> ${r.assignedSolverName || r.assignedSolverUsername}<br>
+                        <strong>Status:</strong> <span class="badge bg-secondary">${r.delegationStatus || 'Accepted'}</span><br>
+                        <strong>Reason:</strong> <i class="text-muted">${r.delegationNote || 'N/A'}</i>
+                    </div>
+                </div>`;
+            }
+
+            document.getElementById('reportDetailContent').innerHTML = html;
+
+            // SLA Section
+            const slaSect = document.getElementById('slaSection');
+            const slaStat = document.getElementById('slaStatus');
+            if(r.status === 'Finished' || r.status === 'Declined') {
+                slaSect.classList.add('d-none');
+            } else {
+                slaSect.classList.remove('d-none');
+                if(r.slaDeadline) {
+                    const diff = new Date(r.slaDeadline) - new Date();
+                    const hours = Math.floor(diff / (1000 * 60 * 60));
+                    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    slaStat.innerHTML = `Deadline: <strong>${r.slaDeadline}</strong> (${hours}h ${mins}m remaining)`;
+                    slaStat.className = diff < 0 ? 'text-danger fw-bold' : (diff < (4 * 3600000) ? 'text-warning fw-bold' : 'text-success');
+                } else {
+                    slaStat.innerText = "No SLA timer set.";
+                    slaStat.className = "text-muted";
+                }
+            }
+
+            // Load Chat
+            const msgs = await System.fetchMessages(id);
+            document.getElementById('chatMsgCount').innerText = msgs.length;
+            window._chatRefreshFn = () => viewDetails(currentReportId);
+            System.renderChatMessages(msgs, 'chatMessages');
+
+            reportModal.show();
+        };
+
+        window.sendChatMsg = async () => {
+            const input = document.getElementById('chatInput');
+            const msg = input.value.trim();
+            if(!msg || !currentReportId) return;
+            const btn = document.getElementById('adminChatSendBtn');
+            System.setLoading(btn, true, "");
+            const res = await System.sendMessage(currentReportId, msg);
+            System.setLoading(btn, false);
+            if(res.success) {
+                input.value = '';
+                const updMsgs = await System.fetchMessages(currentReportId);
+                document.getElementById('chatMsgCount').innerText = updMsgs.length;
+                System.renderChatMessages(updMsgs, 'chatMessages');
+            } else { System.showToast("Failed to send", "danger"); }
+        };
+
+        window.setSLATimer = async (hours) => {
+            if(!currentReportId) return;
+            const res = await System.setSLA(currentReportId, hours);
+            if(res.success) { System.showToast(`SLA set to ${hours}h`, "success"); viewDetails(currentReportId); window.loadReports(); }
+        };
+
+        window.clearSLATimer = async () => {
+            if(!currentReportId) return;
+            const res = await System.clearEscalation(currentReportId);
+            if(res.success) { System.showToast("SLA cleared", "info"); viewDetails(currentReportId); window.loadReports(); }
+        };
+
+        // Periodic SLA check every 60 seconds
+        setInterval(async () => {
+            const res = await System.checkSLA();
+            if(res.success && res.escalatedCount > 0) {
+                System.showToast(`⏱️ ${res.escalatedCount} ticket(s) breached SLA!`, "danger");
+                window.loadReports();
+            }
+        }, 60000);
+        // Initial SLA check
+        setTimeout(() => System.checkSLA(), 3000);
+
+        window.handleAnalyticsDateFilter = () => {
+            const val = document.getElementById('analyticsDateFilter').value;
+            const customDiv = document.getElementById('analyticsCustomDates');
+            if (val === 'custom') customDiv.classList.remove('d-none');
+            else { customDiv.classList.add('d-none'); window.loadAnalytics(); }
+        };
+
+        window._filteredAnalyticsData = { reports: [], users: [] };
+
+        window.loadAnalytics = () => {
+            const data = System.getData();
+            let reports = [...data.reports];
+            let users = [...data.users];
+
+            const filterVal = document.getElementById('analyticsDateFilter').value;
+            const now = new Date();
+            let startDate = null;
+
+            if (filterVal === 'weekly') {
+                startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+            } else if (filterVal === 'monthly') {
+                startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+            } else if (filterVal === 'yearly') {
+                startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+            } else if (filterVal === 'custom') {
+                const sDate = document.getElementById('analyticsStartDate').value;
+                const eDate = document.getElementById('analyticsEndDate').value;
+                if (sDate) startDate = new Date(sDate);
+                if (eDate) {
+                    const endDate = new Date(eDate);
+                    endDate.setHours(23, 59, 59, 999);
+                    reports = reports.filter(r => new Date(r.date) <= endDate);
+                    users = users.filter(u => new Date(u.createdAt || u.date || '2000-01-01') <= endDate);
+                }
+            }
+
+            if (startDate) {
+                reports = reports.filter(r => new Date(r.date) >= startDate);
+                users = users.filter(u => new Date(u.createdAt || u.date || '2000-01-01') >= startDate);
+            }
+
+            window._filteredAnalyticsData.reports = reports;
+            window._filteredAnalyticsData.users = users;
+
+            // KPI Cards
+            document.getElementById('kpiTotal').innerText = reports.length;
+            document.getElementById('kpiPending').innerText = reports.filter(r => r.status === 'Pending').length;
+            document.getElementById('kpiResolved').innerText = reports.filter(r => ['Finished','Completed'].includes(r.status)).length;
+
+            document.getElementById('kpiUsers').innerText = users.length;
+            document.getElementById('kpiAdmin').innerText = users.filter(u => u.role === 'Admin').length;
+            document.getElementById('kpiSolvers').innerText = users.filter(u => u.role === 'Solver').length;
+            document.getElementById('kpiTeachers').innerText = users.filter(u => u.role === 'Teacher').length;
+            document.getElementById('kpiStudents').innerText = users.filter(u => u.role === 'Student').length;
+
+            // Category Pie Chart
+            const catCounts = {};
+            reports.forEach(r => { catCounts[r.category] = (catCounts[r.category] || 0) + 1; });
+            const catCtx = document.getElementById('categoryChart').getContext('2d');
+            if(window._catChart) window._catChart.destroy();
+            window._catChart = new Chart(catCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(catCounts).length ? Object.keys(catCounts) : ['No Data'],
+                    datasets: [{ data: Object.keys(catCounts).length ? Object.values(catCounts) : [1], backgroundColor: Object.keys(catCounts).length ? ['#4e73df','#1cc88a','#36b9cc','#f6c23e','#e74a3b','#858796','#fd7e14','#20c9a6'] : ['#e0e0e0'] }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+
+            // Status Bar Chart
+            const statuses = ['Pending','Assigned','In Progress','Finished','Declined'];
+            const statusCounts = statuses.map(s => reports.filter(r => r.status === s).length);
+            const statCtx = document.getElementById('statusChart').getContext('2d');
+            if(window._statChart) window._statChart.destroy();
+            window._statChart = new Chart(statCtx, {
+                type: 'bar',
+                data: {
+                    labels: statuses,
+                    datasets: [{ label: 'Reports', data: statusCounts, backgroundColor: ['#f6c23e','#4e73df','#36b9cc','#1cc88a','#e74a3b'] }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+            });
+
+            // Solver Performance Bar Chart
+            const solvers = data.users.filter(u => u.role === 'Solver'); // Use all solvers for X-axis
+            const solverNames = solvers.map(s => s.fullName);
+            const solverCounts = solvers.map(s => reports.filter(r => r.assignedSolverUsername === s.username && ['Finished','Completed'].includes(r.status)).length);
+            const solverCtx = document.getElementById('solverChart').getContext('2d');
+            if(window._solverChart) window._solverChart.destroy();
+            window._solverChart = new Chart(solverCtx, {
+                type: 'bar',
+                data: {
+                    labels: solverNames.length ? solverNames : ['No Solvers'],
+                    datasets: [{ label: 'Completed Tasks', data: solverNames.length ? solverCounts : [0], backgroundColor: '#1cc88a' }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+            });
+        };
+
+        window.openExportModal = () => {
+            exportModalInstance.show();
+        };
+
+        window.handleExportDateFilter = () => {
+            const val = document.getElementById('exportDateFilter').value;
+            const customDiv = document.getElementById('exportCustomDates');
+            if (val === 'custom') customDiv.classList.remove('d-none');
+            else customDiv.classList.add('d-none');
+        };
+
+        window.executeExport = (type) => {
+            const data = System.getData();
+            let reports = [...data.reports];
+            let users = [...data.users];
+
+            const filterVal = document.getElementById('exportDateFilter').value;
+            const now = new Date();
+            let startDate = null;
+            let filterText = document.getElementById('exportDateFilter').options[document.getElementById('exportDateFilter').selectedIndex].text;
+
+            if (filterVal === 'daily') {
+                startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            } else if (filterVal === 'weekly') {
+                startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+            } else if (filterVal === 'monthly') {
+                startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+            } else if (filterVal === 'yearly') {
+                startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+            } else if (filterVal === 'custom') {
+                const sDate = document.getElementById('exportStartDate').value;
+                const eDate = document.getElementById('exportEndDate').value;
+                if (sDate) startDate = new Date(sDate);
+                if (eDate) {
+                    const endDate = new Date(eDate);
+                    endDate.setHours(23, 59, 59, 999);
+                    reports = reports.filter(r => new Date(r.date) <= endDate);
+                    users = users.filter(u => new Date(u.createdAt || u.date || '2000-01-01') <= endDate);
+                }
+                filterText = `Custom (${sDate || '*'} to ${eDate || '*'})`;
+            }
+
+            if (startDate) {
+                reports = reports.filter(r => new Date(r.date) >= startDate);
+                users = users.filter(u => new Date(u.createdAt || u.date || '2000-01-01') >= startDate);
+            }
+
+            if (type === 'pdf') {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+
+                doc.setFontSize(18);
+                doc.text('UniFix Admin Analytics Export', 14, 22);
+                doc.setFontSize(11);
+                doc.setTextColor(100);
+                doc.text(`Date Range: ${filterText}`, 14, 30);
+                doc.text(`Generated On: ${new Date().toLocaleString()}`, 14, 36);
+
+                doc.autoTable({
+                    startY: 45,
+                    head: [['Total Reports', 'Pending', 'Resolved', 'Total Users']],
+                    body: [[
+                        reports.length,
+                        reports.filter(r => r.status === 'Pending').length,
+                        reports.filter(r => ['Finished','Completed'].includes(r.status)).length,
+                        users.length
+                    ]],
+                    theme: 'grid',
+                    headStyles: { fillColor: [13, 110, 253] }
+                });
+
+                doc.autoTable({
+                    startY: doc.lastAutoTable.finalY + 15,
+                    head: [['ID', 'Date', 'Category', 'Status', 'Reporter']],
+                    body: reports.map(r => [r.id, r.date, r.category, r.status, r.reporterName]),
+                    theme: 'striped',
+                    headStyles: { fillColor: [54, 185, 204] }
+                });
+
+                doc.save(`UniFix_Export_${new Date().getTime()}.pdf`);
+            } else if (type === 'csv') {
+                let csvContent = "data:text/csv;charset=utf-8,";
+                csvContent += "ID,Date,Category,Status,Urgency,Reporter Name,Reporter ID\n";
+                reports.forEach(r => {
+                    let row = [
+                        r.id,
+                        r.date,
+                        `"${r.category}"`,
+                        r.status,
+                        r.urgency,
+                        `"${r.reporterName}"`,
+                        r.reporterId
+                    ].join(",");
+                    csvContent += row + "\n";
+                });
+
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `UniFix_Export_${new Date().getTime()}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+
+            exportModalInstance.hide();
+        };
+    </script>
+
+    <footer class="site-footer-bar border-top mt-auto py-3">
+      <div class="container text-center">
+        <span class="text-muted small">
+          &copy; 2026 <strong>UniFix</strong> &mdash;
+          <span data-i18n="footerDesc">Ethiopia's smart university campus issue management platform.</span>
+        </span>
+      </div>
+    </footer>
+    <style>.site-footer-bar{background:var(--bs-body-bg,#fff)}</style>
+
+</body>
+</html>

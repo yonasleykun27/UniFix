@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniFix - Teacher Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="apple-touch-icon" sizes="180x180" href="./Img/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./Img/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./Img/favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="./Img/favicon_io/site.webmanifest">
+    <style>
+        .dynamic-section {
+            background-color: var(--bs-tertiary-bg);
+            border-left: 4px solid var(--bs-primary);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .detail-box {
+            background-color: var(--bs-secondary-bg);
+            border-left: 4px solid var(--bs-primary);
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            margin-top: 8px;
+        }
+        .detail-item { display: flex; margin-bottom: 2px; }
+        .detail-label { font-weight: 700; color: var(--bs-primary); min-width: 90px; font-size: 0.75rem; text-transform: uppercase; }
+        .detail-value { color: var(--bs-body-color); }
+
+        #pageLoader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bs-body-bg); z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+            flex-direction: column; transition: opacity 0.5s;
+        }
+
+        [data-bs-theme="light"] .nav-pills .nav-link:not(.active) {
+            background-color: #f8f9fa !important; 
+            color: #212529 !important; 
+            border: 1px solid #dee2e6;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        [data-bs-theme="dark"] .nav-pills .nav-link:not(.active) {
+            background-color: #343a40 !important; 
+            color: #f8f9fa !important; 
+            border: 1px solid #495057;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .nav-pills .nav-link.active {
+            background-color: #0d6efd !important; 
+            color: #ffffff !important;
+            font-weight: 700;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        [data-bs-theme="dark"] .table thead th {
+            background-color: #000000 !important; 
+            color: #ffffff !important;
+            border-bottom: 2px solid #444;
+        }
+        [data-bs-theme="dark"] .table tbody td {
+            color: #e0e0e0;
+            border-bottom: 1px solid #333;
+        }
+        [data-bs-theme="dark"] .card-custom {
+            background-color: #121212 !important; 
+            border: 1px solid #333;
+        }
+
+        @media (max-width: 768px) {
+            .table thead { display: none; }
+            .table, .table tbody, .table tr, .table td { display: block; width: 100%; }
+            .table tr { 
+                margin-bottom: 20px; 
+                border: 1px solid #dee2e6; 
+                border-radius: 12px; 
+                padding: 15px; 
+                background: var(--bs-body-bg); 
+                box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            }
+            [data-bs-theme="dark"] .table tr { border-color: #444; }
+            .table td { 
+                display: flex; 
+                flex-direction: column; 
+                align-items: flex-start; 
+                text-align: left; 
+                border: none; 
+                padding: 8px 0; 
+                border-bottom: 1px dashed #eee; 
+                word-break: break-word;
+            }
+            [data-bs-theme="dark"] .table td { border-bottom-color: #333; }
+            .table td:last-child { border-bottom: none; }
+            .table td::before { 
+                content: attr(data-label); 
+                font-weight: 800; 
+                color: var(--bs-primary); 
+                margin-bottom: 4px;
+                text-transform: uppercase;
+                font-size: 0.7rem;
+            }
+            .btn { width: 100%; padding: 12px; font-weight: bold; }
+            .navbar-nav { text-align: center; }
+        }
+    </style>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8057787763038301"
+     crossorigin="anonymous"></script>
+</head>
+<body class="bg-university d-flex flex-column min-vh-100">
+
+    <div id="pageLoader">
+        <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+        <h5 class="fw-bold text-muted">Loading Data...</h5>
+    </div>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm sticky-top">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-bold" href="#"><i class="bi bi-buildings-fill me-2"></i>UniFix</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item me-3 d-none d-lg-block">
+                        <div id="liveClock" class="badge bg-white text-primary shadow-sm" style="font-size: 0.9rem;">00:00</div>
+                    </li>
+                    <li class="nav-item me-3 text-white">
+                        <span class="user-display-name fw-bold">Teacher</span>
+                    </li>
+
+                    <li class="nav-item me-2 dropdown">
+                        <button class="btn btn-outline-light btn-sm position-relative" id="notifBell" data-bs-toggle="dropdown">
+                            <i class="bi bi-bell-fill"></i>
+                            <span id="notifBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.6rem;display:none;">0</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow" id="notifList" style="min-width:280px;max-height:320px;overflow-y:auto;">
+                            <li class="dropdown-item text-muted small">Loading...</li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item me-1">
+                        <button class="btn btn-outline-light btn-sm my-1" onclick="openChangePasswordModal()" title="Change Password">
+                            <i class="bi bi-key-fill"></i>
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="btn btn-outline-light btn-sm me-2 my-1" onclick="System.toggleTheme()">
+                            <i id="themeIcon" class="bi bi-moon-stars-fill"></i>
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="btn btn-outline-light btn-sm me-2 my-1" onclick="System.toggleLanguage()">
+                            <i class="bi bi-translate"></i>
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="btn btn-danger btn-sm my-1" onclick="System.logout()" data-i18n="logout">Logout</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4 fade-in">
+
+        <div id="warningBanner" class="alert alert-warning d-flex align-items-start d-none shadow-sm rounded-3" role="alert">
+            <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-3 text-warning" style="font-size: 1.5rem;"></i>
+            <div>
+                <strong>Warning:</strong> You have <span id="warnCount" class="fw-bold">0</span> strike(s).
+                <div id="warnReason" class="mt-1 small fst-italic border-top border-warning pt-1 d-none"></div>
+            </div>
+        </div>
+
+        <ul class="nav nav-pills mb-4 gap-2" id="pills-tab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="pills-report-tab" data-bs-toggle="pill" data-bs-target="#pills-report" type="button" role="tab">
+                    <i class="bi bi-pencil-square me-2"></i><span data-i18n="reportIssue">Report Issue</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="pills-history-tab" data-bs-toggle="pill" data-bs-target="#pills-history" type="button" role="tab" onclick="loadHistory()">
+                    <i class="bi bi-clock-history me-2"></i><span data-i18n="myHistory">My History</span>
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="pills-tabContent">
+
+            <div class="tab-pane fade show active" id="pills-report" role="tabpanel">
+                <div class="card card-custom p-4 shadow-sm border-0">
+                    <h4 class="mb-4 text-primary fw-bold" data-i18n="submit">Submit New Report</h4>
+
+                    <form id="reportForm" class="needs-validation" novalidate>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" data-i18n="category">Category</label>
+                                <select id="category" class="form-select" onchange="toggleCategoryFields()" required>
+                                    <option value="" selected disabled>Select...</option>
+                                    <option value="Teaching Materials">Teaching Materials</option>
+                                    <option value="Classroom Mgmt">Classroom Management</option>
+                                    <option value="Work Environment">Work Environment</option>
+                                    <option value="Administrative">Administrative</option>
+                                    <option value="Technology">Technology</option>
+                                    <option value="Social">Social</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                                <div class="invalid-feedback">Please select a category.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" data-i18n="phone">Phone Number</label>
+                                <input type="tel" id="phone" class="form-control" placeholder="09... / 07... / +251..." required>
+                                <div class="invalid-feedback">A valid phone number is required.</div>
+                            </div>
+                        </div>
+
+                        <div id="field-Materials" class="dynamic-section mt-3 d-none">
+                            <h6 class="mb-3 fw-bold"><i class="bi bi-book me-2"></i>Material Details</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6"><label class="form-label">Course Name</label><input type="text" id="matCourse" class="form-control"></div>
+                                <div class="col-md-6"><label class="form-label">Room Number</label><input type="text" id="matRoom" class="form-control"></div>
+                            </div>
+                        </div>
+                        <div id="field-Classroom" class="dynamic-section mt-3 d-none">
+                            <h6 class="mb-3 fw-bold"><i class="bi bi-building me-2"></i>Classroom Details</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6"><label class="form-label">Room Number</label><input type="text" id="classRoom" class="form-control"></div>
+                                <div class="col-md-6"><label class="form-label">Batch/Section</label><input type="text" id="classBatch" class="form-control"></div>
+                            </div>
+                        </div>
+                        <div id="field-Office" class="dynamic-section mt-3 d-none">
+                            <h6 class="mb-3 fw-bold"><i class="bi bi-briefcase me-2"></i>Office Environment</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6"><label class="form-label">Office Block</label><input type="text" id="offBlock" class="form-control"></div>
+                                <div class="col-md-6"><label class="form-label">Office Number</label><input type="text" id="offNum" class="form-control"></div>
+                            </div>
+                        </div>
+                        <div id="field-Tech" class="dynamic-section mt-3 d-none">
+                            <h6 class="mb-3 fw-bold"><i class="bi bi-laptop me-2"></i>Tech Issue</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6"><label class="form-label">Device Type</label><input type="text" id="techDevice" class="form-control"></div>
+                                <div class="col-md-6"><label class="form-label">Location</label><input type="text" id="techLoc" class="form-control"></div>
+                            </div>
+                        </div>
+                        <div id="field-General" class="dynamic-section mt-3 d-none">
+                            <h6 class="mb-3 fw-bold"><i class="bi bi-geo-alt me-2"></i>Location</h6>
+                            <input type="text" id="genLocation" class="form-control" placeholder="e.g. Building Name, Hall A">
+                        </div>
+
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" data-i18n="urgency">Urgency</label>
+                                <select id="urgency" class="form-select" required>
+                                    <option value="Low" data-i18n="low">Low</option>
+                                    <option value="Medium" data-i18n="medium">Medium</option>
+                                    <option value="High" data-i18n="high">High</option>
+                                    <option value="Urgent" data-i18n="urgent">Urgent</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold" data-i18n="description">Description</label>
+                                <textarea id="description" class="form-control" rows="4" required></textarea>
+                                <div class="invalid-feedback">Please provide a description of the problem.</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <label class="form-label fw-semibold"><i class="bi bi-camera me-1"></i> Attach Photo (Optional)</label>
+                            <input type="file" id="reportPhoto" class="form-control" accept="image/*">
+                            <div class="form-text">Max 5MB. Accepted: JPG, PNG, GIF, WebP</div>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" id="submitReportBtn" class="btn btn-primary px-5 shadow-sm fw-bold w-100-mobile" data-i18n="submit">Submit Report</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="pills-history" role="tabpanel">
+                <div class="card card-custom p-4 shadow-sm border-0">
+                    <h4 class="mb-3 text-primary fw-bold" data-i18n="myHistory">My Report History</h4>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th data-i18n="date">Date</th>
+                                    <th data-i18n="category">Category</th>
+                                    <th data-i18n="description">Details</th>
+                                    <th data-i18n="status">Status</th>
+                                    <th data-i18n="actions">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTableBody"></tbody>
+                        </table>
+                        <div id="noDataMsg" class="text-center text-muted py-4 d-none">No reports found.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="reportModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="modalTitle">Report Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editForm">
+                        <input type="hidden" id="editId">
+                        <div id="declineAlert" class="alert alert-danger d-none shadow-sm">
+                            <strong><i class="bi bi-x-circle-fill me-2"></i><span data-i18n="reasonDecline">Reason:</span></strong> <span id="declineReasonText"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small" data-i18n="category">Category</label>
+                            <input type="text" id="editCategory" class="form-control" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold" data-i18n="description">Description</label>
+                            <textarea id="editDesc" class="form-control" rows="5"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold" data-i18n="urgency">Urgency</label>
+                            <select id="editUrgency" class="form-select">
+                                <option value="Low" data-i18n="low">Low</option>
+                                <option value="Medium" data-i18n="medium">Medium</option>
+                                <option value="High" data-i18n="high">High</option>
+                                <option value="Urgent" data-i18n="urgent">Urgent</option>
+                            </select>
+                        </div>
+                    </form>
+
+                    <div class="mt-3 border rounded">
+                        <div class="bg-dark text-white p-2 rounded-top d-flex align-items-center">
+                            <i class="bi bi-chat-dots-fill me-2"></i><strong>Ticket Chat</strong>
+                            <span id="teacherChatCount" class="badge bg-info ms-auto">0</span>
+                        </div>
+                        <div id="teacherChatMessages" class="p-2" style="max-height:200px;overflow-y:auto;background:#f8f9fa;"></div>
+                        <div class="input-group p-2 border-top">
+                            <input type="text" id="teacherChatInput" class="form-control form-control-sm" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendTeacherChat()">
+                            <button class="btn btn-primary btn-sm" onclick="sendTeacherChat()"><i class="bi bi-send"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" id="modalFooter"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="globalConfirmModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" data-i18n="confirmTitle">Confirm</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="globalConfirmBody">Are you sure?</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="cancelBtn">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="globalConfirmBtn" data-i18n="confirmBtn">Yes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="changePasswordModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="bi bi-key-fill me-2"></i>Change Password</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3"><label class="form-label fw-bold">Current Password</label><input type="password" id="cpCurrentPass" class="form-control" placeholder="Enter current password"></div>
+                    <div class="mb-3"><label class="form-label fw-bold">New Password</label><input type="password" id="cpNewPass" class="form-control" placeholder="Min 6 characters"></div>
+                    <div class="mb-3"><label class="form-label fw-bold">Confirm New Password</label><input type="password" id="cpConfirmPass" class="form-control" placeholder="Repeat new password"></div>
+                    <div id="cpError" class="alert alert-danger d-none small"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="submitChangePassword()"><i class="bi bi-check-lg me-1"></i>Update Password</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="js/main.js"></script>
+
+    <script>
+        let currentUser; let modal; let changePasswordModal;
+
+        const LOCAL_TEXTS = {
+            en: {
+                successMsg: "Operation Successful", errorMsg: "An error occurred",
+                editReportTitle: "Edit Report", viewDetailsTitle: "View Details",
+                closeBtn: "Close", saveChanges: "Save Changes",
+                deleteConfirmMsg: "Delete this report?", reportRemoved: "Report removed from view.",
+                date: "Date", category: "Category", description: "Description", status: "Status", actions: "Actions",
+                warningReason: "Reason for warning:",
+                mandatoryMsg: "Please fill in all mandatory fields (Category, Phone, and Description).",
+                invalidPhone: "Invalid Phone Format! (Use 09.., 07.., or +251..)"
+            },
+            am: {
+                successMsg: "ተሳክቷል", errorMsg: "ስህተት ተፈጥሯል",
+                editReportTitle: "ሪፖርት አርም", viewDetailsTitle: "ዝርዝር ይመልከቱ",
+                closeBtn: "ዝጋ", saveChanges: "ለውጦችን አስቀምጥ",
+                deleteConfirmMsg: "ይህንን ሪፖርት መሰረዝ ይፈልጋሉ?", reportRemoved: "ሪፖርቱ ከእይታ ተወግዷል",
+                date: "ቀን", category: "ምድብ", description: "ዝርዝር", status: "ሁኔታ", actions: "ተግባራት",
+                warningReason: "የማስጠንቀቂያ ምክንያት:",
+                mandatoryMsg: "እባክዎ ሁሉንም አስፈላጊ መረጃዎች ይሙሉ (ምድብ፣ ስልክ እና ዝርዝር መግለጫ)።",
+                invalidPhone: "ትክክለኛ ስልክ ቁጥር ያስገቡ! (09.., 07.., ወይም +251..)"
+            }
+        };
+
+        window.addEventListener('load', async () => {
+            const checkSystem = setInterval(() => {
+                if (window.System && window.System.currentUser) {
+                    clearInterval(checkSystem);
+                    initApp();
+                } else if (window.System && !window.System.currentUser) {
+                    clearInterval(checkSystem);
+                    window.location.href = 'index.html';
+                }
+            }, 100);
+        });
+
+        function initApp() {
+            currentUser = System.checkAuth('Teacher');
+            modal = new bootstrap.Modal(document.getElementById('reportModal'));
+            changePasswordModal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
+            const loader = document.getElementById('pageLoader');
+            if(loader) { loader.style.opacity = '0'; setTimeout(() => loader.remove(), 500); }
+            window.loadHistory();
+            System.initNotificationBell('notifBell', 'notifBadge', 'notifList');
+        }
+
+        window.getTrans = (key) => {
+            const lang = localStorage.getItem('unifix_lang') || 'en';
+            if (LOCAL_TEXTS[lang] && LOCAL_TEXTS[lang][key]) return LOCAL_TEXTS[lang][key];
+            if (window.System && window.System.getTrans) return window.System.getTrans(key);
+            return key; 
+        }
+
+        window.toggleCategoryFields = () => {
+            const cat = document.getElementById('category').value;
+            document.querySelectorAll('.dynamic-section').forEach(el => el.classList.add('d-none'));
+            if (cat === 'Teaching Materials') document.getElementById('field-Materials').classList.remove('d-none');
+            else if (cat === 'Classroom Mgmt') document.getElementById('field-Classroom').classList.remove('d-none');
+            else if (cat === 'Work Environment') document.getElementById('field-Office').classList.remove('d-none');
+            else if (cat === 'Technology') document.getElementById('field-Tech').classList.remove('d-none');
+            else if (['Administrative','Social'].includes(cat)) document.getElementById('field-General').classList.remove('d-none');
+        }
+
+        document.getElementById('reportForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const phoneInput = document.getElementById('phone').value.trim();
+            const phoneRegex = /^(09|07)\d{8}$|^\+251\d{9}$/;
+
+            if (!phoneRegex.test(phoneInput)) {
+                System.showToast(window.getTrans('invalidPhone'), "warning");
+                return;
+            }
+
+            if (!this.checkValidity()) {
+                e.stopPropagation();
+                this.classList.add('was-validated');
+                System.showToast(window.getTrans('mandatoryMsg'), "warning");
+                return;
+            }
+
+            const cat = document.getElementById('category').value;
+            let d = null;
+            if(cat === 'Teaching Materials') d = { course: document.getElementById('matCourse').value, room: document.getElementById('matRoom').value };
+            else if(cat === 'Classroom Mgmt') d = { room: document.getElementById('classRoom').value, batch: document.getElementById('classBatch').value };
+            else if(cat === 'Work Environment') d = { block: document.getElementById('offBlock').value, office: document.getElementById('offNum').value };
+            else if(cat === 'Technology') d = { device: document.getElementById('techDevice').value, location: document.getElementById('techLoc').value };
+            else if(['Administrative','Social'].includes(cat)) d = { location: document.getElementById('genLocation').value };
+
+            const newReport = {
+                id: Date.now(), reporterUsername: currentUser.username, reporterName: currentUser.fullName, reporterId: currentUser.id, reporterRole: 'Teacher',
+                reporterPhone: phoneInput, category: cat, urgency: document.getElementById('urgency').value, description: document.getElementById('description').value,
+                status: 'Pending', assignedTo: null, date: new Date().toLocaleDateString(), specificDetails: d, hiddenFromReporter: false
+            };
+
+            const photoInput = document.getElementById('reportPhoto');
+            const photoFile = photoInput && photoInput.files[0] ? photoInput.files[0] : null;
+            const btn = document.getElementById('submitReportBtn');
+
+            System.setLoading(btn, true, "Submitting...");
+
+            const res = await System.submitReport(newReport, photoFile);
+            System.setLoading(btn, false);
+
+            if(res.success) {
+                System.showToast(window.getTrans('successMsg'), "success");
+                e.target.reset(); this.classList.remove('was-validated'); toggleCategoryFields();
+                if(photoInput) photoInput.value = '';
+                bootstrap.Tab.getInstance(document.querySelector('#pills-history-tab')).show();
+                loadHistory();
+            } else { System.showToast("Error", "danger"); }
+        });
+
+        window.loadHistory = () => {
+            const data = System.getData();
+            const tbody = document.getElementById('historyTableBody');
+            const myReports = data.reports.filter(r => r.reporterUsername === currentUser.username && !r.hiddenFromReporter);
+
+            tbody.innerHTML = '';
+            if(myReports.length === 0) document.getElementById('noDataMsg').classList.remove('d-none');
+            else {
+                document.getElementById('noDataMsg').classList.add('d-none');
+                myReports.reverse().forEach(r => {
+                    let badgeClass = r.status === 'Pending' ? 'bg-warning text-dark' : (['Finished','Completed'].includes(r.status) ? 'bg-success' : 'bg-info text-dark');
+                    if(r.status === 'Declined') badgeClass = 'bg-danger';
+
+                    let detailBoxHtml = `<div class="fw-bold mb-1">${r.category}</div><div class="text-muted small">${r.description}</div>`;
+                    if(r.specificDetails) {
+                        detailBoxHtml += `<div class="detail-box">`;
+                        for(let [key, val] of Object.entries(r.specificDetails)) {
+                            if(val && val.trim() !== "") {
+                                detailBoxHtml += `<div class="detail-item"><span class="detail-label">${key.toUpperCase()}:</span><span class="detail-value">${val}</span></div>`;
+                            }
+                        }
+                        detailBoxHtml += `</div>`;
+                    }
+
+                    let actionBtns = r.status === 'Pending' ? 
+                        `<div class="d-flex gap-2 justify-content-end"><button class="btn btn-sm btn-warning" onclick="openModal(${r.id}, true)"><i class="bi bi-pencil"></i></button><button class="btn btn-sm btn-danger" onclick="deleteReport(${r.id})"><i class="bi bi-trash"></i></button></div>` :
+                        `<div class="d-flex gap-2 justify-content-end"><button class="btn btn-sm btn-primary" onclick="openModal(${r.id}, false)"><i class="bi bi-eye"></i></button><button class="btn btn-sm btn-danger" onclick="deleteReport(${r.id})"><i class="bi bi-x-circle"></i></button></div>`;
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td data-label="${window.getTrans('date')}"><small class="fw-bold">${r.date}</small></td>
+                            <td data-label="${window.getTrans('category')}">${r.category}</td>
+                            <td data-label="${window.getTrans('description')}">${detailBoxHtml}</td>
+                            <td data-label="${window.getTrans('status')}"><span class="badge ${badgeClass} shadow-sm">${window.getTrans(r.status.toLowerCase()) || r.status}</span></td>
+                            <td data-label="${window.getTrans('actions')}">${actionBtns}</td>
+                        </tr>`;
+                });
+            }
+        };
+
+        window.deleteReport = (id) => {
+            System.confirmAction(window.getTrans('deleteConfirmMsg'), async () => {
+                const r = System.getData().reports.find(x => x.id === id);
+                if(r.status === 'Pending') await System.hardDeleteReport(id);
+                else await System.softDeleteReport(id);
+                loadHistory();
+            });
+        };
+
+        window.openModal = async (id, isEditable) => {
+            const r = System.getData().reports.find(x => x.id === id);
+            if(!r) return;
+            document.getElementById('editId').value = r.id;
+            document.getElementById('editCategory').value = r.category;
+            document.getElementById('editDesc').value = r.description;
+            document.getElementById('editUrgency').value = r.urgency;
+
+            if(r.status === 'Declined' && r.declineReason) {
+                document.getElementById('declineAlert').classList.remove('d-none');
+                document.getElementById('declineReasonText').innerText = r.declineReason;
+            } else document.getElementById('declineAlert').classList.add('d-none');
+
+            const footer = document.getElementById('modalFooter');
+            const descInput = document.getElementById('editDesc');
+            const urgInput = document.getElementById('editUrgency');
+            document.getElementById('modalTitle').innerText = isEditable ? window.getTrans('editReportTitle') : window.getTrans('viewDetailsTitle');
+
+            if(isEditable) {
+                descInput.readOnly = false; urgInput.disabled = false;
+
+                // Show existing photo with change/remove options
+                const existingPhotoContainer = document.getElementById('photoDisplay');
+                if(existingPhotoContainer) existingPhotoContainer.remove();
+                let editPhotoHtml = `<div id="photoDisplay" class="mt-3 p-3 border rounded">
+                    <label class="form-label fw-bold"><i class="bi bi-camera me-1"></i>Attached Photo</label>`;
+                if(r.photoUrl) {
+                    editPhotoHtml += `<div id="currentPhotoWrap" class="mb-2">
+                        <img src="${r.photoUrl}" class="img-fluid rounded shadow-sm" style="max-height:200px;display:block;" alt="Attached Photo">
+                        <button type="button" class="btn btn-danger btn-sm mt-2" id="removePhotoBtn" onclick="markRemovePhoto()"><i class="bi bi-trash me-1"></i>Remove Photo</button>
+                        <span id="removePhotoFlag" data-remove="false" style="display:none"></span>
+                    </div>`;
+                } else {
+                    editPhotoHtml += `<div class="text-muted small mb-1">No photo attached.</div>`;
+                }
+                editPhotoHtml += `<input type="file" id="newPhotoInput" class="form-control form-control-sm mt-1" accept="image/*">
+                    <div class="form-text">Upload a new photo to replace the existing one.</div>
+                </div>`;
+                document.getElementById('editForm').insertAdjacentHTML('beforeend', editPhotoHtml);
+
+                footer.innerHTML = `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">${window.getTrans('closeBtn')}</button>
+                                    <button type="button" class="btn btn-primary" onclick="saveEdit()">${window.getTrans('saveChanges')}</button>`;
+            } else {
+                descInput.readOnly = true; urgInput.disabled = true;
+                let extra = "\n\n--- EXTRA DETAILS ---\n";
+                if(r.specificDetails) for(const [k,v] of Object.entries(r.specificDetails)) if(v) extra += `${k.toUpperCase()}: ${v}\n`;
+                descInput.value += extra;
+                // Show photo in view mode
+                const existingPhotoContainer = document.getElementById('photoDisplay');
+                if(existingPhotoContainer) existingPhotoContainer.remove();
+                if(r.photoUrl) {
+                    document.getElementById('editForm').insertAdjacentHTML('beforeend', `<div id="photoDisplay" class="mt-3"><label class="form-label fw-bold"><i class="bi bi-image me-1"></i>Attached Photo</label><br><img src="${r.photoUrl}" class="img-fluid rounded shadow-sm" style="max-height:300px;" alt="Report Photo"></div>`);
+                }
+                footer.innerHTML = `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">${window.getTrans('closeBtn')}</button>`;
+            }
+
+            // Load chat messages
+            const msgs = await System.fetchMessages(r.id);
+            document.getElementById('teacherChatCount').innerText = msgs.length;
+            window._chatRefreshFn = () => openModal(parseInt(document.getElementById('editId').value), false);
+            System.renderChatMessages(msgs, 'teacherChatMessages');
+
+            modal.show();
+        }
+
+        window.sendTeacherChat = async () => {
+            const input = document.getElementById('teacherChatInput');
+            const msg = input.value.trim();
+            const rid = parseInt(document.getElementById('editId').value);
+            if(!msg || !rid) return;
+            input.value = '';
+            const res = await System.sendMessage(rid, msg);
+            if(res.success) {
+                const updMsgs = await System.fetchMessages(rid);
+                document.getElementById('teacherChatCount').innerText = updMsgs.length;
+                System.renderChatMessages(updMsgs, 'teacherChatMessages');
+            }
+        };
+
+        window.markRemovePhoto = () => {
+            document.getElementById('removePhotoFlag').dataset.remove = 'true';
+            const wrap = document.getElementById('currentPhotoWrap');
+            if(wrap) wrap.style.opacity = '0.3';
+            const btn = document.getElementById('removePhotoBtn');
+            if(btn) { btn.innerText = '✕ Marked for removal'; btn.disabled = true; }
+        };
+
+        window.saveEdit = async () => {
+            const id = parseInt(document.getElementById('editId').value);
+            const newData = { description: document.getElementById('editDesc').value, urgency: document.getElementById('editUrgency').value };
+            if(!(await System.updateReportContent(id, newData))) {
+                System.showToast(window.getTrans('errorMsg'), "danger"); return;
+            }
+
+            const removeFlag = document.getElementById('removePhotoFlag');
+            const newPhotoInput = document.getElementById('newPhotoInput');
+            const newPhotoFile = newPhotoInput && newPhotoInput.files[0] ? newPhotoInput.files[0] : null;
+            const shouldRemove = removeFlag && removeFlag.dataset.remove === 'true';
+
+            if(newPhotoFile) {
+                const fd = new FormData();
+                fd.append('action', 'updatePhoto'); fd.append('id', id); fd.append('photo', newPhotoFile);
+                await fetch('manage_reports.php', { method: 'POST', credentials: 'include', body: fd });
+            } else if(shouldRemove) {
+                const fd = new FormData();
+                fd.append('action', 'updatePhoto'); fd.append('id', id); fd.append('removePhoto', 'true');
+                await fetch('manage_reports.php', { method: 'POST', credentials: 'include', body: fd });
+            }
+
+            await System.refreshData();
+            modal.hide(); loadHistory();
+            System.showToast(window.getTrans('successMsg'), "success");
+        };
+
+        window.openChangePasswordModal = () => {
+            document.getElementById('cpCurrentPass').value = '';
+            document.getElementById('cpNewPass').value = '';
+            document.getElementById('cpConfirmPass').value = '';
+            document.getElementById('cpError').classList.add('d-none');
+            changePasswordModal.show();
+        };
+        window.submitChangePassword = async () => {
+            const cur = document.getElementById('cpCurrentPass').value;
+            const nw = document.getElementById('cpNewPass').value;
+            const cf = document.getElementById('cpConfirmPass').value;
+            const errEl = document.getElementById('cpError');
+            errEl.classList.add('d-none');
+            if (!cur || !nw || !cf) { errEl.textContent = 'All fields are required.'; errEl.classList.remove('d-none'); return; }
+            if (nw.length < 6) { errEl.textContent = 'Min 6 characters.'; errEl.classList.remove('d-none'); return; }
+            if (nw !== cf) { errEl.textContent = 'Passwords do not match.'; errEl.classList.remove('d-none'); return; }
+            const res = await System.changePassword(cur, nw);
+            if (res.success) { changePasswordModal.hide(); System.showToast('Password changed!', 'success'); }
+            else { errEl.textContent = res.message || 'Failed.'; errEl.classList.remove('d-none'); }
+        };
+    </script>
+
+    <footer class="site-footer-bar border-top mt-auto py-3">
+      <div class="container text-center">
+        <span class="text-muted small">
+          &copy; 2026 <strong>UniFix</strong> &mdash;
+          <span data-i18n="footerDesc">Ethiopia's smart university campus issue management platform.</span>
+        </span>
+      </div>
+    </footer>
+    <style>.site-footer-bar{background:var(--bs-body-bg,#fff)}</style>
+</body>
+</html>

@@ -1,0 +1,24 @@
+# Ignore uploaded files
+uploads/img_*
+uploads/email_logs/
+
+# Ignore PHP session/cache files
+*.session
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore editor directories
+.vscode/
+.idea/
+
+# Ignore node modules if any
+node_modules/
+
+# Ignore temp/debug test files
+test_*.php
+fix_db.php
+puppeteer_login_test.js
+test_session.php
+test_curl_login.php
