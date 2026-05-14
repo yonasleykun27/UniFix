@@ -11,7 +11,7 @@ UniFix is a full-stack, web-based issue management platform built for Ethiopian 
 
 ## 🌐 Live Demo
 
-🔗 [[https://unifix-dbu.netlify.app/](https://unifix-dbu.netlify.app/](http://unifix.wuaze.com/))
+🔗 [http://unifix.wuaze.com/](http://unifix.wuaze.com/)
 
 ---
 
