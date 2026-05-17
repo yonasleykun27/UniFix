@@ -23,14 +23,14 @@ UniFix is a full-stack, web-based issue management platform built for Ethiopian 
 | <img src="https://github.com/yonasleykun27/UniFix/blob/main/Img/1.png?raw=true" width="600"> |
 
 ### 👨‍🎓 Student Dashboard
-| Report Submission | Issue Tracking |
-| :---: | :---: |
-| <img src="https://github.com/yonasleykun27/UniFix/blob/main/Img/3.png?raw=true" width="300"> |
+| Report Submission | Dynamic Categories | Issue Tracking |
+| :---: | :---: | :---: |
+| <img src="https://github.com/yonasleykun27/UniFix-System/blob/main/Img/Student%20Page%201.png?raw=true" width="250"> | <img src="https://github.com/yonasleykun27/UniFix-System/blob/main/Img/Student%20Page%202.png?raw=true" width="250"> | <img src="https://github.com/yonasleykun27/UniFix-System/blob/main/Img/Student%20Page%203.png?raw=true" width="250"> |
 
 ### 🛡️ Admin Portal
 | System Management | User Database |
 | :---: | :---: |
-| <img src="https://github.com/yonasleykun27/UniFix/blob/main/Img/2.png?raw=true" width="300"> |
+| <img src="https://github.com/yonasleykun27/UniFix-System/blob/main/Img/Admin%20Page%201.png?raw=true" width="400"> | <img src="https://github.com/yonasleykun27/UniFix-System/blob/main/Img/Admin%20Page%202.png?raw=true" width="400"> |
 
 ---
 
