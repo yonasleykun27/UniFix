@@ -459,11 +459,10 @@ const System = {
         }
         
         this.refreshData().then(() => {
-            if(typeof window.loadReports === 'function') window.loadReports();
-            if(typeof window.loadTasks === 'function') window.loadTasks();
+            if(typeof window.loadReports === 'function') window.loadReports(true);
+            if(typeof window.loadTasks === 'function') window.loadTasks(true);
             if(typeof window.loadUsers === 'function') window.loadUsers();
             if(typeof window.loadHistory === 'function') window.loadHistory();
-
         });
 
         return user;
@@ -848,18 +847,23 @@ const System = {
         location.reload();
     },
 
-    fetchMessages: async function(reportId) {
+    fetchMessages: async function(reportId, isAdmin = false) {
         try {
-            const res = await fetch('ticket_chat.php', { method: 'POST', credentials: 'include', headers: {'Content-Type':'application/json'}, body: JSON.stringify({action:'fetch', reportId, t: Date.now()}) });
+            const payload = { action: 'fetch', reportId, t: Date.now() };
+            if (this.currentUser) {
+                payload.userRole = this.currentUser.role;           // Admin | Solver | Student | Teacher
+                payload.senderUsername = this.currentUser.username; // For reporter's own admin_only messages
+            }
+            const res = await fetch('ticket_chat.php', { method: 'POST', credentials: 'include', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
             const result = await res.json();
             return result.success ? result.messages : [];
         } catch(e) { return []; }
     },
 
-    sendMessage: async function(reportId, message) {
+    sendMessage: async function(reportId, message, visibility = 'public') {
         if(!this.currentUser || !message.trim()) return {success:false};
         try {
-            const res = await fetch('ticket_chat.php', { method:'POST', credentials: 'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'send', reportId, senderUsername: this.currentUser.username, senderRole: this.currentUser.role, message: message.trim()}) });
+            const res = await fetch('ticket_chat.php', { method:'POST', credentials: 'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'send', reportId, senderUsername: this.currentUser.username, senderRole: this.currentUser.role, message: message.trim(), visibility}) });
             return await res.json();
         } catch(e) { return {success:false, message:e.message}; }
     },
@@ -941,7 +945,7 @@ const System = {
         } catch(e) { return {success:false}; }
     },
 
-    renderChatMessages: function(msgs, containerId) {
+    renderChatMessages: function(msgs, containerId, isAdmin = false) {
         const chatDiv = document.getElementById(containerId);
         if(!chatDiv) return;
         chatDiv.style.background = 'var(--bs-tertiary-bg)';
@@ -951,17 +955,35 @@ const System = {
         }
         chatDiv.innerHTML = msgs.map(m => {
             const isMine = this.currentUser && m.senderUsername === this.currentUser.username;
+            const isAdminOnly   = m.visibility === 'admin_only';
+            const isStudentOnly = m.visibility === 'student_only';
             const safeMsg = encodeURIComponent(m.message);
+
             const actionBtns = isMine ? `
                 <div class="msg-actions mt-1 border-top pt-1 d-flex gap-2" style="font-size:0.7rem;">
                     <button class="btn btn-link btn-sm p-0 text-primary" style="font-size:0.7rem;" onclick="System.startEditMessage(${m.id}, '${safeMsg}')"><i class="bi bi-pencil-fill"></i> Edit</button>
                     <button class="btn btn-link btn-sm p-0 text-danger" style="font-size:0.7rem;" onclick="System.confirmDeleteMessage(${m.id})"><i class="bi bi-trash-fill"></i> Delete</button>
                 </div>` : '';
-            const bgStyle = isMine ? 'background:var(--bs-primary);color:#fff;' : 'background:var(--bs-secondary-bg);color:var(--bs-body-color);border:1px solid var(--bs-border-color);';
+
+            const bgStyle = isMine
+                ? 'background:var(--bs-primary);color:#fff;'
+                : 'background:var(--bs-secondary-bg);color:var(--bs-body-color);border:1px solid var(--bs-border-color);';
+
+            // Private message border highlight
+            let privateBorder = '';
+            let privateBadge  = '';
+            if (isAdminOnly) {
+                privateBorder = 'border:2px solid #dc3545!important;';
+                privateBadge  = `<span class="badge bg-danger ms-1" style="font-size:0.55rem;"><i class="bi bi-shield-lock-fill"></i> Admin Only</span>`;
+            } else if (isStudentOnly) {
+                privateBorder = 'border:2px solid #ffc107!important;';
+                privateBadge  = `<span class="badge bg-warning text-dark ms-1" style="font-size:0.55rem;"><i class="bi bi-person-lock"></i> Reporter Only</span>`;
+            }
+
             return `
             <div class="mb-2 ${isMine ? 'text-end' : ''}" id="msg-bubble-${m.id}">
-                <div class="d-inline-block p-2 rounded shadow-sm text-start" style="max-width:80%;${bgStyle}">
-                    <div class="small fw-bold">${m.senderName || m.senderUsername} <span class="badge bg-secondary" style="font-size:0.6rem">${m.senderRole}</span></div>
+                <div class="d-inline-block p-2 rounded shadow-sm text-start" style="max-width:80%;${bgStyle}${privateBorder}">
+                    <div class="small fw-bold">${m.senderName || m.senderUsername} <span class="badge bg-secondary" style="font-size:0.6rem">${m.senderRole}</span>${privateBadge}</div>
                     <div id="msg-text-${m.id}">${m.message}</div>
                     <div style="font-size:0.65rem;opacity:0.7;">${m.createdAt}</div>
                     ${actionBtns}

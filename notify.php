@@ -23,6 +23,7 @@ function unifix_notify($toEmail, $toName, $subject, $htmlBody) {
 
     try {
         $mail->isSMTP();
+        $mail->CharSet    = 'UTF-8';
         $mail->Host       = 'smtp.gmail.com';
         $mail->SMTPAuth   = true;
         $mail->Username   = SMTP_USER;

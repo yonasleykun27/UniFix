@@ -188,7 +188,7 @@
                 </button>
             </li>
             <li class="nav-item">
-                <button class="nav-link fw-bold shadow-sm" id="pills-history-tab" data-bs-toggle="pill" data-bs-target="#pills-history" type="button" onclick="loadTasks()">
+                <button class="nav-link fw-bold shadow-sm" id="pills-history-tab" data-bs-toggle="pill" data-bs-target="#pills-history" type="button">
                     <i class="bi bi-clock-history me-2"></i><span data-i18n="jobHistory">Job History</span>
                 </button>
             </li>
@@ -398,6 +398,14 @@
             if(loader) { loader.style.opacity = '0'; setTimeout(() => loader.remove(), 500); }
             window.loadTasks();
             System.initNotificationBell('notifBell', 'notifBadge', 'notifList');
+
+            // Bootstrap tab shown event: load history when switching to history tab
+            const historyTabEl = document.getElementById('pills-history-tab');
+            if(historyTabEl) {
+                historyTabEl.addEventListener('shown.bs.tab', () => {
+                    window.loadTasks();
+                });
+            }
         }
 
         window.getTrans = (key) => {
@@ -414,32 +422,70 @@
             const noActiveMsg = document.getElementById('noActiveMsg');
             const noHistoryMsg = document.getElementById('noHistoryMsg');
 
-            activeBody.innerHTML = ''; historyBody.innerHTML = '';
+            // Determine which tab is visible so we only re-render what's needed
+            const historyTabActive = document.getElementById('pills-history')?.classList.contains('active');
 
             const allMyTasks = data.reports.filter(r => r.assignedSolverUsername === currentUser.username && !r.hiddenFromSolver);
 
             let activeTasks = allMyTasks.filter(r => r.status !== 'Finished' && r.status !== 'Completed');
             const historyTasks = allMyTasks.filter(r => r.status === 'Finished' || r.status === 'Completed');
 
-            // Sort active tasks: Closest deadline first. If no deadline, sort by older submission first.
+            // Sort active: Urgent/breached SLA at top, then by urgency, then by SLA deadline
+            const urgencyRank = { 'Urgent': 0, 'High': 1, 'Medium': 2, 'Low': 3 };
             activeTasks.sort((a, b) => {
+                // Breached SLA always at top
+                const aBreached = a.slaDeadline && new Date(a.slaDeadline) < new Date();
+                const bBreached = b.slaDeadline && new Date(b.slaDeadline) < new Date();
+                if(aBreached && !bBreached) return -1;
+                if(!aBreached && bBreached) return 1;
+                // Then sort by urgency
+                const uA = urgencyRank[a.urgency] !== undefined ? urgencyRank[a.urgency] : 9;
+                const uB = urgencyRank[b.urgency] !== undefined ? urgencyRank[b.urgency] : 9;
+                if(uA !== uB) return uA - uB;
+                // Then by nearest SLA deadline
+                if(a.slaDeadline && b.slaDeadline) return new Date(a.slaDeadline) - new Date(b.slaDeadline);
                 if(a.slaDeadline && !b.slaDeadline) return -1;
                 if(!a.slaDeadline && b.slaDeadline) return 1;
-                if(a.slaDeadline && b.slaDeadline) {
-                    return new Date(a.slaDeadline) - new Date(b.slaDeadline);
-                }
-                return a.id - b.id; // Fallback to submitted order (id ascending)
+                return a.id - b.id;
             });
+
+            // Always re-render active tasks
+            activeBody.innerHTML = '';
 
             if(activeTasks.length === 0) noActiveMsg.classList.remove('d-none');
             else {
                 noActiveMsg.classList.add('d-none');
                 activeTasks.forEach(r => {
-                    let detailsHtml = `<div class="mb-2"><strong>${r.category}</strong></div><div class="text-muted small mb-2">${r.description}</div>`;
+                    // Urgency color mapping
+                    const urgencyColorMap = { 'Urgent': 'danger', 'High': 'warning', 'Medium': 'info', 'Low': 'secondary' };
+                    const urgencyColor = urgencyColorMap[r.urgency] || 'secondary';
+                    const urgencyTextMap = { 'Urgent': 'text-white', 'High': 'text-dark', 'Medium': 'text-dark', 'Low': 'text-white' };
+                    const urgencyText = urgencyTextMap[r.urgency] || 'text-white';
 
+                    let slaTopHtml = '';
                     if(r.slaDeadline) {
-                        detailsHtml += `<div class="badge bg-danger mb-2 text-white"><i class="bi bi-clock-history me-1"></i>Deadline: ${r.slaDeadline}</div>`;
+                        const slaDiff = new Date(r.slaDeadline) - new Date();
+                        const slaH = Math.floor(Math.abs(slaDiff) / 3600000);
+                        const slaM = Math.floor((Math.abs(slaDiff) % 3600000) / 60000);
+                        const slaBreached = slaDiff < 0;
+                        const slaColor = slaBreached ? 'danger' : (slaDiff < 3600000 ? 'warning' : 'success');
+                        slaTopHtml = `<div class="mb-2"><span class="badge bg-${slaColor} text-white fw-bold" id="sla-badge-${r.id}">
+                            <i class="bi bi-alarm-fill me-1"></i>${slaBreached ? '⚠️ BREACHED' : slaH + 'h ' + slaM + 'm'} remaining
+                        </span></div>`;
                     }
+
+                    let detailsHtml = `
+                        <div class="mb-2 d-flex gap-2 align-items-center flex-wrap">
+                            <span class="badge bg-${urgencyColor} ${urgencyText} fw-bold" style="font-size:0.8rem;">
+                                <i class="bi bi-exclamation-circle-fill me-1"></i>${r.urgency} Priority
+                            </span>
+                            ${r.slaDeadline ? `<span class="badge bg-secondary">
+                                <i class="bi bi-clock-fill me-1"></i>SLA: ${r.slaDeadline}
+                            </span>` : ''}
+                        </div>
+                        ${slaTopHtml}
+                        <div class="mb-1"><strong>${r.category}</strong></div>
+                        <div class="text-muted small mb-2">${r.description}</div>`;
 
                     if(r.specificDetails) {
                         detailsHtml += `<div class="detail-box">`;
@@ -478,24 +524,28 @@
                 });
             }
 
-            if(historyTasks.length === 0) noHistoryMsg.classList.remove('d-none');
-            else {
-                noHistoryMsg.classList.add('d-none');
-                historyTasks.reverse().forEach(r => {
-                    historyBody.innerHTML += `
-                        <tr>
-                            <td data-label="${window.getTrans('date')}">${r.date}</td>
-                            <td data-label="${window.getTrans('category')}">${r.category}</td>
-                            <td data-label="${window.getTrans('description')}"><span class="text-truncate d-inline-block" style="max-width:200px;">${r.description}</span></td>
-                            <td data-label="${window.getTrans('status')}"><span class="badge bg-success">Finished</span></td>
-                            <td data-label="${window.getTrans('actions')}">
-                                <div class="d-flex gap-1">
-                                    <button class="btn btn-primary btn-sm" onclick="openModal(${r.id})"><i class="bi bi-eye"></i></button>
-                                    <button class="btn btn-danger btn-sm" onclick="deleteReport(${r.id})"><i class="bi bi-trash"></i></button>
-                                </div>
-                            </td>
-                        </tr>`;
-                });
+            // Only render history if history tab is active OR initial load
+            if(historyTabActive || !activeBody.innerHTML) {
+                historyBody.innerHTML = '';
+                if(historyTasks.length === 0) noHistoryMsg.classList.remove('d-none');
+                else {
+                    noHistoryMsg.classList.add('d-none');
+                    historyTasks.slice().reverse().forEach(r => {
+                        historyBody.innerHTML += `
+                            <tr>
+                                <td data-label="${window.getTrans('date')}">${r.date}</td>
+                                <td data-label="${window.getTrans('category')}">${r.category}</td>
+                                <td data-label="${window.getTrans('description')}"><span class="text-truncate d-inline-block" style="max-width:200px;">${r.description}</span></td>
+                                <td data-label="${window.getTrans('status')}"><span class="badge bg-success">Finished</span></td>
+                                <td data-label="${window.getTrans('actions')}">
+                                    <div class="d-flex gap-1" onclick="event.stopPropagation()">
+                                        <button class="btn btn-primary btn-sm" onclick="openModal(${r.id})"><i class="bi bi-eye"></i></button>
+                                        <button class="btn btn-danger btn-sm" onclick="deleteReport(${r.id})"><i class="bi bi-trash"></i></button>
+                                    </div>
+                                </td>
+                            </tr>`;
+                    });
+                }
             }
         };
 
@@ -595,11 +645,11 @@
                 }
             }
 
-            // Load chat messages
-            const msgs = await System.fetchMessages(id);
+            // Load chat messages (solver does NOT see admin_only messages)
+            const msgs = await System.fetchMessages(id, false);
             document.getElementById('solverChatCount').innerText = msgs.length;
             window._chatRefreshFn = () => openModal(currentSolverReportId);
-            System.renderChatMessages(msgs, 'solverChatMessages');
+            System.renderChatMessages(msgs, 'solverChatMessages', false);
 
             modal.show();
         }

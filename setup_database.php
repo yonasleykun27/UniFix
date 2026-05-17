@@ -90,6 +90,7 @@ try {
         senderUsername VARCHAR(100) NOT NULL,
         senderRole VARCHAR(50) NOT NULL,
         message TEXT NOT NULL,
+        visibility ENUM('public', 'admin_only', 'student_only') DEFAULT 'public',
         createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (reportId) REFERENCES reports(id) ON DELETE CASCADE,
         FOREIGN KEY (senderUsername) REFERENCES users(username) ON DELETE CASCADE
@@ -156,7 +157,8 @@ try {
         "ALTER TABLE reports ADD COLUMN slaEscalated BOOLEAN DEFAULT FALSE",
         "ALTER TABLE reports ADD COLUMN hiddenFromAdmin BOOLEAN DEFAULT FALSE",
         "ALTER TABLE reports ADD COLUMN hiddenFromSolver BOOLEAN DEFAULT FALSE",
-        "ALTER TABLE reports ADD COLUMN hiddenFromReporter BOOLEAN DEFAULT FALSE"
+        "ALTER TABLE reports ADD COLUMN hiddenFromReporter BOOLEAN DEFAULT FALSE",
+        "ALTER TABLE ticket_messages ADD COLUMN visibility ENUM('public', 'admin_only', 'student_only') DEFAULT 'public'"
     ];
 
     foreach ($queries as $query) {
@@ -165,6 +167,13 @@ try {
         } catch (PDOException $e) {
             // 1060 is "Duplicate column name", which is fine. Ignore it.
         }
+    }
+
+    // Expand visibility ENUM if it already exists but is missing 'student_only'
+    try {
+        $db->exec("ALTER TABLE ticket_messages MODIFY COLUMN visibility ENUM('public', 'admin_only', 'student_only') DEFAULT 'public'");
+    } catch (PDOException $e) {
+        // Ignore if table doesn't exist yet or other harmless error
     }
 
     echo "<br><h3>✅ Database Setup & Patching Complete!</h3>";

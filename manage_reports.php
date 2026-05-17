@@ -305,9 +305,15 @@ try {
         echo json_encode(["success" => true]);
     }
     elseif ($action === 'setSLA') {
-        $hours = (int)($data['hours'] ?? 24);
-        $stmt = $conn->prepare("UPDATE reports SET slaDeadline = DATE_ADD(NOW(), INTERVAL :hours HOUR), slaEscalated = 0 WHERE id = :id");
-        $stmt->execute(['hours' => $hours, 'id' => $data['id']]);
+        $hours = isset($data['hours']) ? (float)$data['hours'] : 24;
+        if ($hours <= 0) {
+            // 5 minute: set deadline to 5 mins from now
+            $stmt = $conn->prepare("UPDATE reports SET slaDeadline = DATE_ADD(NOW(), INTERVAL 5 MINUTE), slaEscalated = 0 WHERE id = :id");
+            $stmt->execute(['id' => $data['id']]);
+        } else {
+            $stmt = $conn->prepare("UPDATE reports SET slaDeadline = DATE_ADD(NOW(), INTERVAL :hours HOUR), slaEscalated = 0 WHERE id = :id");
+            $stmt->execute(['hours' => $hours, 'id' => $data['id']]);
+        }
         echo json_encode(["success" => true]);
     }
     elseif ($action === 'checkSLA') {
